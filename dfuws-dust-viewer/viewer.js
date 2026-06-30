@@ -61,8 +61,8 @@
 	function imageBounds(metadata) {
 		const scale = nativeScale(metadata);
 		return L.latLngBounds([
-			[0, 0],
-			[metadata.image.height / scale, metadata.image.width / scale],
+			[-metadata.image.height / scale, 0],
+			[0, metadata.image.width / scale],
 		]);
 	}
 

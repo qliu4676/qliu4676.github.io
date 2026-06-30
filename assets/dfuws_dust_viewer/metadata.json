@@ -1,0 +1,87 @@
+{
+  "schema_version": 1,
+  "created_utc": "2026-06-30T12:35:31.060463+00:00",
+  "preview_only": false,
+  "image": {
+    "width": 4320,
+    "height": 4320,
+    "arcsec_per_pixel_x": 10.00000000000008,
+    "arcsec_per_pixel_y": 10.00000000000008,
+    "arcsec_per_pixel": 10.00000000000008,
+    "footprint_corners": [
+      {
+        "ra_deg": 24.065961465832004,
+        "dec_deg": 11.46035549416053
+      },
+      {
+        "ra_deg": 11.934038534167996,
+        "dec_deg": 11.46035549416053
+      },
+      {
+        "ra_deg": 11.523296005144784,
+        "dec_deg": 23.343084364810373
+      },
+      {
+        "ra_deg": 24.476703994855214,
+        "dec_deg": 23.343084364810373
+      }
+    ]
+  },
+  "tiles": {
+    "max_zoom": 5,
+    "tile_size": 512,
+    "format": "webp",
+    "webp_quality": 92,
+    "templates": {
+      "dragonfly_g": "tiles/dragonfly_g/{z}/{x}/{y}.webp",
+      "dragonfly_r": "tiles/dragonfly_r/{z}/{x}/{y}.webp",
+      "planck": "tiles/planck/{z}/{x}/{y}.webp"
+    }
+  },
+  "layers": {
+    "dragonfly_g": {
+      "source_file": "mosaic_g_kJy_sr.fits",
+      "unit": "kJy/sr",
+      "display_cuts": {
+        "low_quantile": 1.0,
+        "high_quantile": 99.0,
+        "low_value": -1.2767549943923946,
+        "high_value": 12.568536338806096,
+        "finite_pixels": 11211305
+      },
+      "preview": "preview_dragonfly_g.webp",
+      "tile_count": 121
+    },
+    "dragonfly_r": {
+      "source_file": "mosaic_r_kJy_sr.fits",
+      "unit": "kJy/sr",
+      "display_cuts": {
+        "low_quantile": 1.0,
+        "high_quantile": 99.0,
+        "low_value": 1.5503851175308232,
+        "high_value": 18.81311309814446,
+        "finite_pixels": 11211305
+      },
+      "preview": "preview_dragonfly_r.webp",
+      "tile_count": 121
+    },
+    "planck": {
+      "source_file": "planck_radiance.fits",
+      "unit": "W sr-1",
+      "display_cuts": {
+        "low_quantile": 1.0,
+        "high_quantile": 99.0,
+        "low_value": 5.866654699815399e-08,
+        "high_value": 2.509195846300828e-07,
+        "finite_pixels": 18662400
+      },
+      "preview": "preview_planck.webp",
+      "tile_count": 121
+    }
+  },
+  "alignment": {
+    "grid": "Dragonfly g/r mosaic pixel grid",
+    "planck_reprojected_to_dragonfly": false,
+    "orientation_note": "Tiles preserve FITS array orientation consistently across all layers."
+  }
+}

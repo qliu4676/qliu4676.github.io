@@ -1,0 +1,71 @@
+<!DOCTYPE HTML>
+<html lang="en">
+	<head>
+		<title>DFUWS Dust Viewer</title>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+		<link rel="icon" href="../images/thumbs/gal_icon2.png" />
+		<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+			integrity="sha256-p4NxAoJBhIINfQ7D1YfBNfYr3A3HWYUtgh9Wlc9jF5g="
+			crossorigin="" />
+		<link rel="stylesheet" href="viewer.css" />
+	</head>
+	<body>
+		<main class="viewer-shell">
+			<header class="viewer-header">
+				<div>
+					<a class="home-link" href="../index.html">Qing Liu</a>
+					<h1>DFUWS Cirrus Viewer</h1>
+				</div>
+				<p>Dragonfly dust-map mosaics compared with Planck radiance</p>
+			</header>
+
+			<section class="viewer-stage" aria-label="Interactive dust map comparison">
+				<div id="map" class="map"></div>
+				<div id="splitter" class="splitter" role="separator" aria-label="Comparison splitter" tabindex="0">
+					<span></span>
+				</div>
+				<div class="map-label left-label">
+					<strong id="dragonflyLabel">Dragonfly g</strong>
+					<span id="dragonflyUnit">kJy sr^-1</span>
+				</div>
+				<div class="map-label right-label">
+					<strong>Planck radiance</strong>
+					<span id="planckUnit">radiance</span>
+				</div>
+				<div id="scaleBar" class="scale-bar" aria-label="Angular scale bar">
+					<span class="scale-line"></span>
+					<span id="scaleLabel">Scale</span>
+				</div>
+				<div id="status" class="status" hidden></div>
+			</section>
+
+			<aside class="controls" aria-label="Viewer controls">
+				<div class="control-group">
+					<span class="control-title">Dragonfly band</span>
+					<div class="segmented" role="group" aria-label="Dragonfly band selector">
+						<button id="bandG" class="active" type="button" aria-pressed="true">g</button>
+						<button id="bandR" type="button" aria-pressed="false">r</button>
+					</div>
+				</div>
+
+				<div class="control-group">
+					<span class="control-title">Dragonfly display</span>
+					<label>Brightness <input id="dragonflyBrightness" type="range" min="40" max="180" value="100" /></label>
+					<label>Contrast <input id="dragonflyContrast" type="range" min="40" max="220" value="100" /></label>
+				</div>
+
+				<div class="control-group">
+					<span class="control-title">Planck display</span>
+					<label>Brightness <input id="planckBrightness" type="range" min="40" max="180" value="100" /></label>
+					<label>Contrast <input id="planckContrast" type="range" min="40" max="220" value="100" /></label>
+				</div>
+			</aside>
+		</main>
+
+		<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+			integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+			crossorigin=""></script>
+		<script src="viewer.js"></script>
+	</body>
+</html>

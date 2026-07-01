@@ -71,7 +71,7 @@ input {
 
 .viewer-stage {
 	position: relative;
-	min-height: 0;
+	min-height: 520px;
 	overflow: hidden;
 	background: #010203;
 }
@@ -79,10 +79,47 @@ input {
 .map {
 	position: absolute;
 	inset: 0;
+	overflow: hidden;
+	padding: 12px;
+	cursor: grab;
+	touch-action: none;
+	user-select: none;
+}
+
+.map.is-panning {
+	cursor: grabbing;
+}
+
+.preview-layer {
+	position: absolute;
+	inset: 0;
+	overflow: hidden;
+	pointer-events: none;
+}
+
+.preview-layer img {
+	display: block;
+	position: absolute;
+	top: 0;
+	left: 0;
+	max-width: none;
+	max-height: none;
+	width: auto;
+	height: auto;
+	transform-origin: 0 0;
+	image-rendering: auto;
+	pointer-events: none;
+	user-select: none;
 }
 
 .left-pane,
 .right-pane {
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	overflow: hidden;
+	pointer-events: none;
 	transition: filter 120ms ease;
 }
 
@@ -125,21 +162,24 @@ input {
 .splitter span::after {
 	content: "";
 	position: absolute;
-	top: 13px;
-	width: 8px;
-	height: 14px;
-	border-top: 2px solid #fff;
-	border-bottom: 2px solid #fff;
+	top: 50%;
+	width: 0;
+	height: 0;
+	transform: translateY(-50%);
 }
 
 .splitter span::before {
-	left: 10px;
-	border-left: 2px solid #fff;
+	left: 7px;
+	border-top: 8px solid transparent;
+	border-bottom: 8px solid transparent;
+	border-right: 11px solid #fff;
 }
 
 .splitter span::after {
-	right: 10px;
-	border-right: 2px solid #fff;
+	right: 7px;
+	border-top: 8px solid transparent;
+	border-bottom: 8px solid transparent;
+	border-left: 11px solid #fff;
 }
 
 .map-label,
@@ -194,10 +234,9 @@ input {
 .scale-line {
 	display: block;
 	width: 90px;
-	height: 10px;
-	border-left: 2px solid #fff;
-	border-right: 2px solid #fff;
-	border-bottom: 2px solid #fff;
+	height: 6px;
+	background: #fff;
+	border-radius: 999px;
 }
 
 #scaleLabel {
@@ -221,7 +260,7 @@ input {
 
 .controls {
 	display: grid;
-	grid-template-columns: minmax(180px, 240px) repeat(2, minmax(240px, 1fr));
+	grid-template-columns: minmax(160px, 220px) repeat(3, minmax(220px, 1fr));
 	gap: 18px;
 	padding: 14px 18px 18px;
 	background: #0b0d10;
@@ -248,6 +287,11 @@ input {
 	overflow: hidden;
 	border: 1px solid rgba(255, 255, 255, 0.2);
 	border-radius: 6px;
+}
+
+.segmented-three {
+	grid-template-columns: 0.75fr 0.75fr 1.5fr;
+	width: min(100%, 240px);
 }
 
 .segmented button {

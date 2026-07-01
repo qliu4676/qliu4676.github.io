@@ -66,6 +66,12 @@ def parse_args() -> argparse.Namespace:
         help="WebP quality, used only with --format webp.",
     )
     parser.add_argument(
+        "--preview-max-side",
+        type=int,
+        default=1600,
+        help="Maximum preview image side length in pixels. Use 0 to keep full resolution.",
+    )
+    parser.add_argument(
         "--cuts",
         type=float,
         nargs=2,
@@ -77,6 +83,11 @@ def parse_args() -> argparse.Namespace:
         "--preview-only",
         action="store_true",
         help="Write previews and metadata only; skip full tile pyramid generation.",
+    )
+    parser.add_argument(
+        "--update-previews-only",
+        action="store_true",
+        help="Refresh previews and metadata in an existing output directory without touching tiles.",
     )
     parser.add_argument(
         "--overwrite",
@@ -170,7 +181,9 @@ def finite_cuts(data: np.ndarray, cuts: tuple[float, float]) -> dict[str, float 
     }
 
 
-def normalize_rgba(data: np.ndarray, cuts: dict[str, float | int]) -> Image.Image:
+def normalize_rgba(data: np.ndarray, cuts: dict[str, float | int], origin: str = "lower") -> Image.Image:
+    if origin == "lower":
+        data = np.flipud(data)
     lo = float(cuts["low_value"])
     hi = float(cuts["high_value"])
     finite = np.isfinite(data)
@@ -192,7 +205,8 @@ def save_image(image: Image.Image, path: Path, image_format: str, webp_quality: 
 
 def build_preview(image: Image.Image, max_side: int = 1600) -> Image.Image:
     preview = image.copy()
-    preview.thumbnail((max_side, max_side), Image.Resampling.LANCZOS)
+    if max_side > 0:
+        preview.thumbnail((max_side, max_side), Image.Resampling.LANCZOS)
     return preview
 
 
@@ -281,7 +295,16 @@ def main() -> None:
         raise ValueError("--max-zoom must be >= 0")
     if args.tile_size <= 0:
         raise ValueError("--tile-size must be > 0")
-    if args.output_dir.exists():
+    existing_metadata = {}
+    metadata_path = args.output_dir / "metadata.json"
+    if metadata_path.exists():
+        with metadata_path.open("r", encoding="utf-8") as handle:
+            existing_metadata = json.load(handle)
+
+    if args.update_previews_only and not args.output_dir.exists():
+        raise FileNotFoundError(f"{args.output_dir} does not exist; cannot update previews in place.")
+
+    if args.output_dir.exists() and not args.update_previews_only:
         if not args.overwrite:
             raise FileExistsError(f"{args.output_dir} already exists; pass --overwrite to replace it.")
         shutil.rmtree(args.output_dir)
@@ -311,12 +334,13 @@ def main() -> None:
 
     for layer_name, data in arrays.items():
         cuts = finite_cuts(data, tuple(args.cuts))
-        rgba = normalize_rgba(data, cuts)
+        rgba = normalize_rgba(data, cuts, origin="lower")
         preview_name = f"preview_{layer_name}.{args.format}"
-        save_image(build_preview(rgba), args.output_dir / preview_name, args.format, args.webp_quality)
+        save_image(build_preview(rgba, args.preview_max_side), args.output_dir / preview_name, args.format, args.webp_quality)
 
-        tile_info = {"tile_count": 0}
-        if not args.preview_only:
+        existing_layer = existing_metadata.get("layers", {}).get(layer_name, {})
+        tile_info = {"tile_count": int(existing_layer.get("tile_count", 0))}
+        if not args.preview_only and not args.update_previews_only:
             tile_info = build_tiles(
                 rgba,
                 args.output_dir,
@@ -342,7 +366,7 @@ def main() -> None:
     metadata = {
         "schema_version": 1,
         "created_utc": datetime.now(timezone.utc).isoformat(),
-        "preview_only": bool(args.preview_only),
+        "preview_only": bool(args.preview_only and not args.update_previews_only),
         "image": {
             "width": int(width),
             "height": int(height),
@@ -354,13 +378,15 @@ def main() -> None:
             "tile_size": int(args.tile_size),
             "format": args.format,
             "webp_quality": int(args.webp_quality) if args.format == "webp" else None,
+            "preview_max_side": int(args.preview_max_side),
             "templates": tile_templates,
         },
         "layers": layer_meta,
         "alignment": {
             "grid": "Dragonfly g/r mosaic pixel grid",
             "planck_reprojected_to_dragonfly": bool(planck_reprojected),
-            "orientation_note": "Tiles preserve FITS array orientation consistently across all layers.",
+            "tile_origin": "lower",
+            "orientation_note": "Tiles are vertically flipped from array row order to match matplotlib imshow(origin='lower').",
         },
     }
 

@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "created_utc": "2026-06-30T12:35:31.060463+00:00",
+  "created_utc": "2026-06-30T13:29:53.115438+00:00",
   "preview_only": false,
   "image": {
     "width": 4320,
@@ -32,6 +32,7 @@
     "tile_size": 512,
     "format": "webp",
     "webp_quality": 92,
+    "preview_max_side": 0,
     "templates": {
       "dragonfly_g": "tiles/dragonfly_g/{z}/{x}/{y}.webp",
       "dragonfly_r": "tiles/dragonfly_r/{z}/{x}/{y}.webp",
@@ -44,9 +45,9 @@
       "unit": "kJy/sr",
       "display_cuts": {
         "low_quantile": 1.0,
-        "high_quantile": 99.0,
+        "high_quantile": 99.8,
         "low_value": -1.2767549943923946,
-        "high_value": 12.568536338806096,
+        "high_value": 27.31761154174758,
         "finite_pixels": 11211305
       },
       "preview": "preview_dragonfly_g.webp",
@@ -57,9 +58,9 @@
       "unit": "kJy/sr",
       "display_cuts": {
         "low_quantile": 1.0,
-        "high_quantile": 99.0,
+        "high_quantile": 99.8,
         "low_value": 1.5503851175308232,
-        "high_value": 18.81311309814446,
+        "high_value": 31.815240783691397,
         "finite_pixels": 11211305
       },
       "preview": "preview_dragonfly_r.webp",
@@ -70,9 +71,9 @@
       "unit": "W sr-1",
       "display_cuts": {
         "low_quantile": 1.0,
-        "high_quantile": 99.0,
+        "high_quantile": 99.8,
         "low_value": 5.866654699815399e-08,
-        "high_value": 2.509195846300828e-07,
+        "high_value": 3.428265264915349e-07,
         "finite_pixels": 18662400
       },
       "preview": "preview_planck.webp",
@@ -82,6 +83,7 @@
   "alignment": {
     "grid": "Dragonfly g/r mosaic pixel grid",
     "planck_reprojected_to_dragonfly": false,
-    "orientation_note": "Tiles preserve FITS array orientation consistently across all layers."
+    "tile_origin": "lower",
+    "orientation_note": "Tiles are vertically flipped from array row order to match matplotlib imshow(origin='lower')."
   }
 }

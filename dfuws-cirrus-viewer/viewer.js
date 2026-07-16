@@ -9,6 +9,7 @@
 		split: 0.5,
 		zoom: 1,
 		initialViewWidthDeg: 5,
+		initialCenter: { ra: 18, dec: 16 },
 		pan: { x: 0, y: 0 },
 		drag: null,
 		panInitialized: false,
@@ -102,6 +103,22 @@
 		const rect = elements.map.getBoundingClientRect();
 		state.pan.x = (rect.width - size.width) / 2;
 		state.pan.y = (rect.height - size.height) / 2;
+		updateTransform();
+	}
+
+	function centerOnSky(ra, dec) {
+		const size = imageSize();
+		const pixel = skyToPixel(ra, dec);
+		if (!size || !pixel) {
+			centerView();
+			return;
+		}
+		const rect = elements.map.getBoundingClientRect();
+		const previewToNative = state.metadata.image.width / size.naturalWidth;
+		const imageX = pixel.x / previewToNative;
+		const imageY = (state.metadata.image.height - 1 - pixel.y) / previewToNative;
+		state.pan.x = rect.width / 2 - imageX * state.zoom;
+		state.pan.y = rect.height / 2 - imageY * state.zoom;
 		updateTransform();
 	}
 
@@ -205,7 +222,7 @@
 		elements.mapDragonflyG.setAttribute("aria-pressed", String(isG));
 		elements.mapDragonflyR.setAttribute("aria-pressed", String(!isG));
 		elements.dragonflyLabel.textContent = isG ? "Dragonfly g" : "Dragonfly r";
-		elements.dragonflyUnit.textContent = state.metadata.layers[state.dragonflyLayer].unit || "kJy sr^-1";
+		elements.dragonflyUnit.textContent = state.metadata.layers[state.dragonflyLayer].unit || "$kJy\\,sr^{-1}$";
 	}
 
 	function updateColormapButtons() {
@@ -235,7 +252,7 @@
 				} else {
 					state.zoom = defaultZoomForAngularView();
 					elements.zoomControl.value = String(state.zoom);
-					centerView();
+					centerOnSky(state.initialCenter.ra, state.initialCenter.dec);
 					state.panInitialized = true;
 				}
 			}
@@ -247,7 +264,7 @@
 	function renderComparison() {
 		updateBandButtons();
 		updateColormapButtons();
-		elements.planckUnit.textContent = state.metadata.layers.planck.unit || "W m^-2 sr^-1";
+		elements.planckUnit.textContent = state.metadata.layers.planck.unit || "$W\\,m^{-2}\\,sr^{-1}$";
 		elements.map.innerHTML = "";
 
 		const leftPane = document.createElement("div");
@@ -300,6 +317,29 @@
 		) * radToDeg;
 		ra = ((ra % 360) + 360) % 360;
 		return { ra, dec };
+	}
+
+	function skyToPixel(ra, dec) {
+		const w = state.metadata && state.metadata.image && state.metadata.image.wcs;
+		if (!w || w.ctype1 !== "RA---TAN" || w.ctype2 !== "DEC--TAN") {
+			return null;
+		}
+		const degToRad = Math.PI / 180;
+		const ra0 = w.crval1 * degToRad;
+		const dec0 = w.crval2 * degToRad;
+		const raRad = ra * degToRad;
+		const decRad = dec * degToRad;
+		const dra = raRad - ra0;
+		const cosc = Math.sin(dec0) * Math.sin(decRad) + Math.cos(dec0) * Math.cos(decRad) * Math.cos(dra);
+		if (cosc <= 0) {
+			return null;
+		}
+		const xi = Math.cos(decRad) * Math.sin(dra) / cosc;
+		const eta = (Math.cos(dec0) * Math.sin(decRad) - Math.sin(dec0) * Math.cos(decRad) * Math.cos(dra)) / cosc;
+		return {
+			x: w.crpix1 + (xi / degToRad) / w.cdelt1 - 1,
+			y: w.crpix2 + (eta / degToRad) / w.cdelt2 - 1,
+		};
 	}
 
 	function updateCoordinates(event) {
@@ -412,6 +452,11 @@
 	}
 
 	function loadMetadata() {
+		if (window.DFUWS_METADATA) {
+			state.metadata = window.DFUWS_METADATA;
+			renderComparison();
+			return;
+		}
 		fetch(`${metadataUrl}?v=${Date.now()}`, { cache: "no-store" })
 			.then((response) => {
 				if (!response.ok) {

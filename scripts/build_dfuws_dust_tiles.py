@@ -232,9 +232,9 @@ def layer_display_range(args: argparse.Namespace, layer_name: str) -> tuple[floa
 
 def display_unit(layer_name: str, header: fits.Header) -> str:
     if layer_name.startswith("dragonfly"):
-        return "kJy sr^-1"
+        return "$kJy\\,sr^{-1}$"
     if layer_name == "planck":
-        return "W m^-2 sr^-1"
+        return "$W\\,m^{-2}\\,sr^{-1}$"
     return unit_from_header(header, "relative")
 
 
@@ -473,6 +473,10 @@ def main() -> None:
     with (args.output_dir / "metadata.json").open("w", encoding="utf-8") as handle:
         json.dump(metadata, handle, indent=2)
         handle.write("\n")
+    with (args.output_dir / "metadata.js").open("w", encoding="utf-8") as handle:
+        handle.write("window.DFUWS_METADATA = ")
+        json.dump(metadata, handle, indent=2)
+        handle.write(";\n")
 
     size = directory_size(args.output_dir)
     print(f"Wrote {args.output_dir}")

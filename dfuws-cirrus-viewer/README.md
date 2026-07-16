@@ -20,10 +20,10 @@ python scripts/build_dfuws_dust_tiles.py \
   --tile-size 512 \
   --format webp \
   --dragonfly-g-range 0 25 \
-  --dragonfly-r-range 0 40 \
+  --dragonfly-r-range 3.2 40 \
   --planck-range 0 6e-7 \
   --colormap inferno \
-  --colormaps viridis inferno gray afmhot \
+  --colormaps viridis inferno afmhot gray \
   --overwrite
 ```
 
@@ -37,10 +37,10 @@ python scripts/build_dfuws_dust_tiles.py \
   --tile-size 512 \
   --format webp \
   --dragonfly-g-range 0 25 \
-  --dragonfly-r-range 0 40 \
+  --dragonfly-r-range 3.2 40 \
   --planck-range 0 6e-7 \
   --colormap inferno \
-  --colormaps viridis inferno gray afmhot \
+  --colormaps viridis inferno afmhot gray \
   --update-previews-only
 ```
 

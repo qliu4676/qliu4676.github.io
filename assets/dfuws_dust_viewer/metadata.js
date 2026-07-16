@@ -1,4 +1,4 @@
-{
+window.DFUWS_METADATA = {
   "schema_version": 1,
   "created_utc": "2026-07-16T12:46:50.123757+00:00",
   "preview_only": false,
@@ -119,4 +119,4 @@
     "tile_origin": "lower",
     "orientation_note": "Tiles are vertically flipped from array row order to match matplotlib imshow(origin='lower')."
   }
-}
+};

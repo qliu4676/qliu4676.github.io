@@ -7,6 +7,7 @@
 		dragonflyLayer: "dragonfly_g",
 		split: 0.5,
 		zoom: 1,
+		initialViewDeg: 10,
 		pan: { x: 0, y: 0 },
 		drag: null,
 		panInitialized: false,
@@ -63,12 +64,20 @@
 		}
 		const rect = elements.map.getBoundingClientRect();
 		const padding = 12;
-		const minX = Math.min(padding, rect.width - size.width - padding);
-		const maxX = padding;
-		const minY = Math.min(padding, rect.height - size.height - padding);
-		const maxY = padding;
-		state.pan.x = Math.max(minX, Math.min(maxX, state.pan.x));
-		state.pan.y = Math.max(minY, Math.min(maxY, state.pan.y));
+		if (size.width + 2 * padding <= rect.width) {
+			state.pan.x = (rect.width - size.width) / 2;
+		} else {
+			const minX = rect.width - size.width - padding;
+			const maxX = padding;
+			state.pan.x = Math.max(minX, Math.min(maxX, state.pan.x));
+		}
+		if (size.height + 2 * padding <= rect.height) {
+			state.pan.y = (rect.height - size.height) / 2;
+		} else {
+			const minY = rect.height - size.height - padding;
+			const maxY = padding;
+			state.pan.y = Math.max(minY, Math.min(maxY, state.pan.y));
+		}
 	}
 
 	function updateTransform() {
@@ -90,17 +99,18 @@
 		updateTransform();
 	}
 
-	function defaultZoomForOneDegreeScale() {
+	function defaultZoomForAngularView() {
 		const image = activeImages()[0];
 		const arcsecPerPixel = state.metadata && state.metadata.image.arcsec_per_pixel;
 		if (!image || !image.naturalWidth || !arcsecPerPixel) {
 			return 1;
 		}
+		const rect = elements.map.getBoundingClientRect();
 		const previewToNative = state.metadata.image.width / image.naturalWidth;
 		const arcsecPerPreviewPixel = arcsecPerPixel * previewToNative;
-		const oneDegreePreviewPixels = 3600 / arcsecPerPreviewPixel;
-		const targetScreenPixels = 120;
-		return Math.max(1, Math.min(8, targetScreenPixels / oneDegreePreviewPixels));
+		const initialViewPixels = (state.initialViewDeg * 3600) / arcsecPerPreviewPixel;
+		const zoom = Math.min(rect.width / initialViewPixels, rect.height / initialViewPixels);
+		return Math.max(0.08, Math.min(8, zoom));
 	}
 
 	function setSplit(split) {
@@ -125,7 +135,7 @@
 
 	function setZoom(nextZoom, anchor) {
 		const oldZoom = state.zoom;
-		const zoom = Math.max(1, Math.min(8, nextZoom));
+		const zoom = Math.max(0.08, Math.min(8, nextZoom));
 		if (zoom === oldZoom) {
 			return;
 		}
@@ -202,7 +212,7 @@
 				if (state.panInitialized) {
 					updateTransform();
 				} else {
-					state.zoom = defaultZoomForOneDegreeScale();
+					state.zoom = defaultZoomForAngularView();
 					elements.zoomControl.value = String(state.zoom);
 					centerView();
 					state.panInitialized = true;

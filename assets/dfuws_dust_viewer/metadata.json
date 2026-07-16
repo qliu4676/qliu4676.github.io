@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "created_utc": "2026-06-30T13:29:53.115438+00:00",
+  "created_utc": "2026-07-16T12:05:40.207299+00:00",
   "preview_only": false,
   "image": {
     "width": 4320,
@@ -46,9 +46,9 @@
       "display_cuts": {
         "low_quantile": 1.0,
         "high_quantile": 99.8,
-        "low_value": -1.2767549943923946,
-        "high_value": 27.31761154174758,
-        "finite_pixels": 11211305
+        "low_value": 2.732636070251465,
+        "high_value": 14.613095779418913,
+        "finite_pixels": 13036706
       },
       "preview": "preview_dragonfly_g.webp",
       "tile_count": 121
@@ -59,9 +59,9 @@
       "display_cuts": {
         "low_quantile": 1.0,
         "high_quantile": 99.8,
-        "low_value": 1.5503851175308232,
-        "high_value": 31.815240783691397,
-        "finite_pixels": 11211305
+        "low_value": 4.703968906402588,
+        "high_value": 22.199416141510007,
+        "finite_pixels": 13036706
       },
       "preview": "preview_dragonfly_r.webp",
       "tile_count": 121

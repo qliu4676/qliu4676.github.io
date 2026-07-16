@@ -1,6 +1,6 @@
-# DFUWS Dust Viewer
+# DFUWS Cirrus Viewer
 
-This page is a static GitHub Pages viewer for comparing Dragonfly DFUWS dust-map mosaics with the Planck radiance map. The FITS files are intentionally not committed to this repository; use the preprocessing script to generate web-ready previews, metadata, and image tiles.
+This page is a static GitHub Pages viewer at `/dfuws-cirrus-viewer/` for comparing Dragonfly DFUWS dust-map mosaics with the Planck radiance map. The FITS files are intentionally not committed to this repository; use the preprocessing script to generate web-ready previews, metadata, and image tiles.
 
 ## Generate Tiles
 

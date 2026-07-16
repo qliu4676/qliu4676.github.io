@@ -34,6 +34,7 @@
 					<span class="scale-line"></span>
 					<span id="scaleLabel">Scale</span>
 				</div>
+				<div id="coordReadout" class="coord-readout" hidden>RA -- Dec --</div>
 				<div id="status" class="status" hidden></div>
 			</section>
 
@@ -47,15 +48,19 @@
 				</div>
 
 				<div class="control-group">
-					<span class="control-title">Dragonfly display</span>
-					<label>Brightness <input id="dragonflyBrightness" type="range" min="40" max="180" value="100" /></label>
-					<label>Contrast <input id="dragonflyContrast" type="range" min="40" max="220" value="100" /></label>
+					<span class="control-title">Colormap</span>
+					<div class="segmented segmented-four" role="group" aria-label="Colormap selector">
+						<button id="cmapViridis" type="button" aria-pressed="false">viridis</button>
+						<button id="cmapInferno" class="active" type="button" aria-pressed="true">inferno</button>
+						<button id="cmapGray" type="button" aria-pressed="false">gray</button>
+						<button id="cmapAfmhot" type="button" aria-pressed="false">afmhot</button>
+					</div>
 				</div>
 
 				<div class="control-group">
-					<span class="control-title">Planck display</span>
-					<label>Brightness <input id="planckBrightness" type="range" min="40" max="180" value="100" /></label>
-					<label>Contrast <input id="planckContrast" type="range" min="40" max="220" value="100" /></label>
+					<span class="control-title">Display</span>
+					<label>Brightness <input id="displayBrightness" type="range" min="40" max="180" value="100" /></label>
+					<label>Contrast <input id="displayContrast" type="range" min="40" max="220" value="100" /></label>
 				</div>
 
 				<div class="control-group">

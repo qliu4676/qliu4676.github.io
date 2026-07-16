@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "created_utc": "2026-07-16T12:05:40.207299+00:00",
+  "created_utc": "2026-07-16T12:24:30.817683+00:00",
   "preview_only": false,
   "image": {
     "width": 4320,
@@ -8,6 +8,17 @@
     "arcsec_per_pixel_x": 10.00000000000008,
     "arcsec_per_pixel_y": 10.00000000000008,
     "arcsec_per_pixel": 10.00000000000008,
+    "wcs": {
+      "ctype1": "RA---TAN",
+      "ctype2": "DEC--TAN",
+      "crpix1": 2160.5,
+      "crpix2": 2160.5,
+      "crval1": 18.0,
+      "crval2": 17.5,
+      "cdelt1": -0.0027777777777778,
+      "cdelt2": 0.0027777777777778,
+      "radesys": "ICRS"
+    },
     "footprint_corners": [
       {
         "ra_deg": 24.065961465832004,
@@ -33,6 +44,13 @@
     "format": "webp",
     "webp_quality": 92,
     "preview_max_side": 0,
+    "colormap": "inferno",
+    "colormaps": [
+      "viridis",
+      "inferno",
+      "gray",
+      "afmhot"
+    ],
     "templates": {
       "dragonfly_g": "tiles/dragonfly_g/{z}/{x}/{y}.webp",
       "dragonfly_r": "tiles/dragonfly_r/{z}/{x}/{y}.webp",
@@ -42,41 +60,56 @@
   "layers": {
     "dragonfly_g": {
       "source_file": "mosaic_g_kJy_sr.fits",
-      "unit": "kJy/sr",
+      "unit": "kJy sr^-1",
       "display_cuts": {
-        "low_quantile": 1.0,
-        "high_quantile": 99.8,
-        "low_value": 2.732636070251465,
-        "high_value": 14.613095779418913,
+        "mode": "fixed",
+        "low_value": 0.0,
+        "high_value": 25.0,
         "finite_pixels": 13036706
       },
       "preview": "preview_dragonfly_g.webp",
+      "previews": {
+        "viridis": "preview_dragonfly_g_viridis.webp",
+        "inferno": "preview_dragonfly_g_inferno.webp",
+        "gray": "preview_dragonfly_g_gray.webp",
+        "afmhot": "preview_dragonfly_g_afmhot.webp"
+      },
       "tile_count": 121
     },
     "dragonfly_r": {
       "source_file": "mosaic_r_kJy_sr.fits",
-      "unit": "kJy/sr",
+      "unit": "kJy sr^-1",
       "display_cuts": {
-        "low_quantile": 1.0,
-        "high_quantile": 99.8,
-        "low_value": 4.703968906402588,
-        "high_value": 22.199416141510007,
+        "mode": "fixed",
+        "low_value": 0.0,
+        "high_value": 40.0,
         "finite_pixels": 13036706
       },
       "preview": "preview_dragonfly_r.webp",
+      "previews": {
+        "viridis": "preview_dragonfly_r_viridis.webp",
+        "inferno": "preview_dragonfly_r_inferno.webp",
+        "gray": "preview_dragonfly_r_gray.webp",
+        "afmhot": "preview_dragonfly_r_afmhot.webp"
+      },
       "tile_count": 121
     },
     "planck": {
       "source_file": "planck_radiance.fits",
-      "unit": "W sr-1",
+      "unit": "W m^-2 sr^-1",
       "display_cuts": {
-        "low_quantile": 1.0,
-        "high_quantile": 99.8,
-        "low_value": 5.866654699815399e-08,
-        "high_value": 3.428265264915349e-07,
+        "mode": "fixed",
+        "low_value": 0.0,
+        "high_value": 6e-07,
         "finite_pixels": 18662400
       },
       "preview": "preview_planck.webp",
+      "previews": {
+        "viridis": "preview_planck_viridis.webp",
+        "inferno": "preview_planck_inferno.webp",
+        "gray": "preview_planck_gray.webp",
+        "afmhot": "preview_planck_afmhot.webp"
+      },
       "tile_count": 121
     }
   },

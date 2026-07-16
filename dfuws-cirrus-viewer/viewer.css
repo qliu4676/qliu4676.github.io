@@ -184,7 +184,8 @@ input {
 
 .map-label,
 .status,
-.scale-bar {
+.scale-bar,
+.coord-readout {
 	position: absolute;
 	z-index: 700;
 	background: var(--panel);
@@ -229,6 +230,18 @@ input {
 	min-width: 120px;
 	padding: 8px 10px 7px;
 	border-radius: 6px;
+}
+
+.coord-readout {
+	right: 18px;
+	bottom: 20px;
+	min-width: 180px;
+	padding: 8px 10px;
+	border-radius: 6px;
+	color: var(--text);
+	font-size: 0.82rem;
+	text-align: right;
+	font-variant-numeric: tabular-nums;
 }
 
 .scale-line {
@@ -292,6 +305,11 @@ input {
 .segmented-three {
 	grid-template-columns: 0.75fr 0.75fr 1.5fr;
 	width: min(100%, 240px);
+}
+
+.segmented-four {
+	grid-template-columns: repeat(4, 1fr);
+	width: min(100%, 320px);
 }
 
 .segmented button {

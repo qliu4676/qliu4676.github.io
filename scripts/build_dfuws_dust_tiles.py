@@ -16,6 +16,7 @@ try:
     from astropy.io import fits
     from astropy.wcs import WCS
     from astropy.wcs.utils import proj_plane_pixel_scales
+    from matplotlib import colormaps
     from PIL import Image
 except ModuleNotFoundError as exc:
     missing = exc.name or "a required package"
@@ -78,6 +79,16 @@ def parse_args() -> argparse.Namespace:
         default=(1.0, 99.0),
         metavar=("LOW_Q", "HIGH_Q"),
         help="Percentile display cuts for finite pixels.",
+    )
+    parser.add_argument("--dragonfly-g-range", type=float, nargs=2, metavar=("VMIN", "VMAX"))
+    parser.add_argument("--dragonfly-r-range", type=float, nargs=2, metavar=("VMIN", "VMAX"))
+    parser.add_argument("--planck-range", type=float, nargs=2, metavar=("VMIN", "VMAX"))
+    parser.add_argument("--colormap", default="inferno", help="Default Matplotlib colormap for generated map images.")
+    parser.add_argument(
+        "--colormaps",
+        nargs="+",
+        default=None,
+        help="Colormaps to generate as full preview images. Defaults to --colormap only.",
     )
     parser.add_argument(
         "--preview-only",
@@ -181,7 +192,58 @@ def finite_cuts(data: np.ndarray, cuts: tuple[float, float]) -> dict[str, float 
     }
 
 
-def normalize_rgba(data: np.ndarray, cuts: dict[str, float | int], origin: str = "lower") -> Image.Image:
+def fixed_cuts(data: np.ndarray, values: tuple[float, float]) -> dict[str, float | int | str]:
+    finite = np.isfinite(data)
+    lo, hi = float(values[0]), float(values[1])
+    if not np.isfinite(lo) or not np.isfinite(hi) or lo == hi:
+        raise ValueError(f"Invalid fixed display range: {values}")
+    return {
+        "mode": "fixed",
+        "low_value": lo,
+        "high_value": hi,
+        "finite_pixels": int(finite.sum()),
+    }
+
+
+def wcs_metadata(wcs: WCS) -> dict[str, float | str | None]:
+    header = wcs.to_header()
+    return {
+        "ctype1": str(header.get("CTYPE1", "")),
+        "ctype2": str(header.get("CTYPE2", "")),
+        "crpix1": float(header.get("CRPIX1")),
+        "crpix2": float(header.get("CRPIX2")),
+        "crval1": float(header.get("CRVAL1")),
+        "crval2": float(header.get("CRVAL2")),
+        "cdelt1": float(header.get("CDELT1")),
+        "cdelt2": float(header.get("CDELT2")),
+        "radesys": str(header.get("RADESYS", "")),
+    }
+
+
+def layer_display_range(args: argparse.Namespace, layer_name: str) -> tuple[float, float] | None:
+    if layer_name == "dragonfly_g":
+        return tuple(args.dragonfly_g_range) if args.dragonfly_g_range else None
+    if layer_name == "dragonfly_r":
+        return tuple(args.dragonfly_r_range) if args.dragonfly_r_range else None
+    if layer_name == "planck":
+        return tuple(args.planck_range) if args.planck_range else None
+    return None
+
+
+def display_unit(layer_name: str, header: fits.Header) -> str:
+    if layer_name.startswith("dragonfly"):
+        return "kJy sr^-1"
+    if layer_name == "planck":
+        return "W m^-2 sr^-1"
+    return unit_from_header(header, "relative")
+
+
+def normalize_rgba(
+    data: np.ndarray,
+    cuts: dict[str, float | int],
+    origin: str = "lower",
+    colormap: str = "inferno",
+) -> Image.Image:
     if origin == "lower":
         data = np.flipud(data)
     lo = float(cuts["low_value"])
@@ -189,9 +251,10 @@ def normalize_rgba(data: np.ndarray, cuts: dict[str, float | int], origin: str =
     finite = np.isfinite(data)
     scaled = np.zeros(data.shape, dtype=np.float32)
     scaled[finite] = np.clip((data[finite] - lo) / (hi - lo), 0.0, 1.0)
-    gray = np.round(scaled * 255).astype(np.uint8)
+    cmap = colormaps[colormap]
+    rgb = np.round(cmap(scaled)[..., :3] * 255).astype(np.uint8)
     alpha = np.where(finite, 255, 0).astype(np.uint8)
-    rgba = np.dstack([gray, gray, gray, alpha])
+    rgba = np.dstack([rgb, alpha])
     return Image.fromarray(rgba, mode="RGBA")
 
 
@@ -332,11 +395,27 @@ def main() -> None:
     tile_templates = {}
     layer_meta = {}
 
+    preview_colormaps = args.colormaps or [args.colormap]
+    if args.colormap not in preview_colormaps:
+        preview_colormaps = [args.colormap, *preview_colormaps]
+
     for layer_name, data in arrays.items():
-        cuts = finite_cuts(data, tuple(args.cuts))
-        rgba = normalize_rgba(data, cuts, origin="lower")
+        layer_range = layer_display_range(args, layer_name)
+        cuts = fixed_cuts(data, layer_range) if layer_range else finite_cuts(data, tuple(args.cuts))
+        default_rgba = normalize_rgba(data, cuts, origin="lower", colormap=args.colormap)
         preview_name = f"preview_{layer_name}.{args.format}"
-        save_image(build_preview(rgba, args.preview_max_side), args.output_dir / preview_name, args.format, args.webp_quality)
+        preview_map = {}
+        for cmap_name in preview_colormaps:
+            rgba = default_rgba if cmap_name == args.colormap else normalize_rgba(data, cuts, origin="lower", colormap=cmap_name)
+            cmap_preview_name = f"preview_{layer_name}_{cmap_name}.{args.format}"
+            save_image(
+                build_preview(rgba, args.preview_max_side),
+                args.output_dir / cmap_preview_name,
+                args.format,
+                args.webp_quality,
+            )
+            preview_map[cmap_name] = cmap_preview_name
+        save_image(build_preview(default_rgba, args.preview_max_side), args.output_dir / preview_name, args.format, args.webp_quality)
 
         existing_layer = existing_metadata.get("layers", {}).get(layer_name, {})
         tile_info = {"tile_count": int(existing_layer.get("tile_count", 0))}
@@ -354,12 +433,10 @@ def main() -> None:
         tile_templates[layer_name] = f"tiles/{layer_name}/{{z}}/{{x}}/{{y}}.{args.format}"
         layer_meta[layer_name] = {
             "source_file": LAYERS[layer_name],
-            "unit": unit_from_header(
-                headers[layer_name],
-                "kJy sr^-1" if layer_name.startswith("dragonfly") else "radiance",
-            ),
+            "unit": display_unit(layer_name, headers[layer_name]),
             "display_cuts": cuts,
             "preview": preview_name,
+            "previews": preview_map,
             **tile_info,
         }
 
@@ -371,6 +448,7 @@ def main() -> None:
             "width": int(width),
             "height": int(height),
             **pixel_scale_metadata(target_wcs),
+            "wcs": wcs_metadata(target_wcs),
             "footprint_corners": footprint_from_wcs(target_wcs, width, height),
         },
         "tiles": {
@@ -379,6 +457,8 @@ def main() -> None:
             "format": args.format,
             "webp_quality": int(args.webp_quality) if args.format == "webp" else None,
             "preview_max_side": int(args.preview_max_side),
+            "colormap": args.colormap,
+            "colormaps": preview_colormaps,
             "templates": tile_templates,
         },
         "layers": layer_meta,

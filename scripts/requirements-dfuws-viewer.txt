@@ -1,4 +1,5 @@
 astropy
+matplotlib
 numpy
 Pillow
 reproject

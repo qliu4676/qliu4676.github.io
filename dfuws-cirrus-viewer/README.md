@@ -19,7 +19,29 @@ python scripts/build_dfuws_dust_tiles.py \
   --max-zoom 5 \
   --tile-size 512 \
   --format webp \
+  --dragonfly-g-range 0 25 \
+  --dragonfly-r-range 0 40 \
+  --planck-range 0 6e-7 \
+  --colormap inferno \
+  --colormaps viridis inferno gray afmhot \
   --overwrite
+```
+
+Refresh only the full-resolution preview images and metadata, leaving the tile pyramid untouched:
+
+```bash
+python scripts/build_dfuws_dust_tiles.py \
+  --input-dir /Users/qliu/dragonfly/cirrus/outputs/mosaics/dfuws \
+  --output-dir assets/dfuws_dust_viewer \
+  --max-zoom 5 \
+  --tile-size 512 \
+  --format webp \
+  --dragonfly-g-range 0 25 \
+  --dragonfly-r-range 0 40 \
+  --planck-range 0 6e-7 \
+  --colormap inferno \
+  --colormaps viridis inferno gray afmhot \
+  --update-previews-only
 ```
 
 Smaller debug tile set:

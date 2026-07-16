@@ -5,9 +5,10 @@
 	const state = {
 		metadata: null,
 		dragonflyLayer: "dragonfly_g",
+		colormap: "inferno",
 		split: 0.5,
 		zoom: 1,
-		initialViewDeg: 10,
+		initialViewWidthDeg: 5,
 		pan: { x: 0, y: 0 },
 		drag: null,
 		panInitialized: false,
@@ -22,13 +23,16 @@
 		dragonflyLabel: document.getElementById("dragonflyLabel"),
 		dragonflyUnit: document.getElementById("dragonflyUnit"),
 		planckUnit: document.getElementById("planckUnit"),
+		coordReadout: document.getElementById("coordReadout"),
 		scaleBar: document.getElementById("scaleBar"),
 		scaleLabel: document.getElementById("scaleLabel"),
-		dragonflyBrightness: document.getElementById("dragonflyBrightness"),
-		dragonflyContrast: document.getElementById("dragonflyContrast"),
-		planckBrightness: document.getElementById("planckBrightness"),
-		planckContrast: document.getElementById("planckContrast"),
+		displayBrightness: document.getElementById("displayBrightness"),
+		displayContrast: document.getElementById("displayContrast"),
 		zoomControl: document.getElementById("zoomControl"),
+		cmapViridis: document.getElementById("cmapViridis"),
+		cmapInferno: document.getElementById("cmapInferno"),
+		cmapGray: document.getElementById("cmapGray"),
+		cmapAfmhot: document.getElementById("cmapAfmhot"),
 	};
 
 	function showStatus(message) {
@@ -37,7 +41,9 @@
 	}
 
 	function previewUrl(layerName) {
-		return `../assets/dfuws_dust_viewer/${state.metadata.layers[layerName].preview}`;
+		const layer = state.metadata.layers[layerName];
+		const preview = (layer.previews && layer.previews[state.colormap]) || layer.preview;
+		return `../assets/dfuws_dust_viewer/${preview}`;
 	}
 
 	function activeImages() {
@@ -108,8 +114,8 @@
 		const rect = elements.map.getBoundingClientRect();
 		const previewToNative = state.metadata.image.width / image.naturalWidth;
 		const arcsecPerPreviewPixel = arcsecPerPixel * previewToNative;
-		const initialViewPixels = (state.initialViewDeg * 3600) / arcsecPerPreviewPixel;
-		const zoom = Math.min(rect.width / initialViewPixels, rect.height / initialViewPixels);
+		const initialViewPixels = (state.initialViewWidthDeg * 3600) / arcsecPerPreviewPixel;
+		const zoom = rect.width / initialViewPixels;
 		return Math.max(0.08, Math.min(8, zoom));
 	}
 
@@ -183,11 +189,12 @@
 	function applyFilters() {
 		const left = elements.map.querySelector(".preview-left img");
 		const right = elements.map.querySelector(".preview-right img");
+		const filter = `brightness(${elements.displayBrightness.value}%) contrast(${elements.displayContrast.value}%)`;
 		if (left) {
-			left.style.filter = `brightness(${elements.dragonflyBrightness.value}%) contrast(${elements.dragonflyContrast.value}%)`;
+			left.style.filter = filter;
 		}
 		if (right) {
-			right.style.filter = `brightness(${elements.planckBrightness.value}%) contrast(${elements.planckContrast.value}%)`;
+			right.style.filter = filter;
 		}
 	}
 
@@ -198,7 +205,21 @@
 		elements.mapDragonflyG.setAttribute("aria-pressed", String(isG));
 		elements.mapDragonflyR.setAttribute("aria-pressed", String(!isG));
 		elements.dragonflyLabel.textContent = isG ? "Dragonfly g" : "Dragonfly r";
-		elements.dragonflyUnit.textContent = state.metadata.layers[state.dragonflyLayer].unit || "kJy/sr";
+		elements.dragonflyUnit.textContent = state.metadata.layers[state.dragonflyLayer].unit || "kJy sr^-1";
+	}
+
+	function updateColormapButtons() {
+		const buttons = {
+			viridis: elements.cmapViridis,
+			inferno: elements.cmapInferno,
+			gray: elements.cmapGray,
+			afmhot: elements.cmapAfmhot,
+		};
+		Object.entries(buttons).forEach(([name, button]) => {
+			const active = state.colormap === name;
+			button.classList.toggle("active", active);
+			button.setAttribute("aria-pressed", String(active));
+		});
 	}
 
 	function makeImage(layerName, alt) {
@@ -225,7 +246,8 @@
 
 	function renderComparison() {
 		updateBandButtons();
-		elements.planckUnit.textContent = state.metadata.layers.planck.unit || "radiance";
+		updateColormapButtons();
+		elements.planckUnit.textContent = state.metadata.layers.planck.unit || "W m^-2 sr^-1";
 		elements.map.innerHTML = "";
 
 		const leftPane = document.createElement("div");
@@ -241,6 +263,60 @@
 		setSplit(state.split);
 	}
 
+	function imageCoordinates(event) {
+		const size = imageSize();
+		if (!size) {
+			return null;
+		}
+		const rect = elements.map.getBoundingClientRect();
+		const imageX = (event.clientX - rect.left - state.pan.x) / state.zoom;
+		const imageY = (event.clientY - rect.top - state.pan.y) / state.zoom;
+		if (imageX < 0 || imageY < 0 || imageX >= size.naturalWidth || imageY >= size.naturalHeight) {
+			return null;
+		}
+		const previewToNative = state.metadata.image.width / size.naturalWidth;
+		return {
+			x: imageX * previewToNative,
+			y: state.metadata.image.height - 1 - imageY * previewToNative,
+		};
+	}
+
+	function pixelToSky(x, y) {
+		const w = state.metadata && state.metadata.image && state.metadata.image.wcs;
+		if (!w || w.ctype1 !== "RA---TAN" || w.ctype2 !== "DEC--TAN") {
+			return null;
+		}
+		const degToRad = Math.PI / 180;
+		const radToDeg = 180 / Math.PI;
+		const xi = ((x + 1) - w.crpix1) * w.cdelt1 * degToRad;
+		const eta = ((y + 1) - w.crpix2) * w.cdelt2 * degToRad;
+		const ra0 = w.crval1 * degToRad;
+		const dec0 = w.crval2 * degToRad;
+		const denom = Math.cos(dec0) - eta * Math.sin(dec0);
+		let ra = (ra0 + Math.atan2(xi, denom)) * radToDeg;
+		const dec = Math.atan2(
+			Math.sin(dec0) + eta * Math.cos(dec0),
+			Math.sqrt(denom * denom + xi * xi)
+		) * radToDeg;
+		ra = ((ra % 360) + 360) % 360;
+		return { ra, dec };
+	}
+
+	function updateCoordinates(event) {
+		const coords = imageCoordinates(event);
+		if (!coords) {
+			elements.coordReadout.hidden = true;
+			return;
+		}
+		const sky = pixelToSky(coords.x, coords.y);
+		if (!sky) {
+			elements.coordReadout.hidden = true;
+			return;
+		}
+		elements.coordReadout.textContent = `RA ${sky.ra.toFixed(4)}  Dec ${sky.dec.toFixed(4)}`;
+		elements.coordReadout.hidden = false;
+	}
+
 	function bindControls() {
 		elements.mapDragonflyG.addEventListener("click", () => {
 			state.dragonflyLayer = "dragonfly_g";
@@ -251,11 +327,17 @@
 			renderComparison();
 		});
 		[
-			elements.dragonflyBrightness,
-			elements.dragonflyContrast,
-			elements.planckBrightness,
-			elements.planckContrast,
-		].forEach((control) => control.addEventListener("input", applyFilters));
+			["viridis", elements.cmapViridis],
+			["inferno", elements.cmapInferno],
+			["gray", elements.cmapGray],
+			["afmhot", elements.cmapAfmhot],
+		].forEach(([name, button]) => {
+			button.addEventListener("click", () => {
+				state.colormap = name;
+				renderComparison();
+			});
+		});
+		[elements.displayBrightness, elements.displayContrast].forEach((control) => control.addEventListener("input", applyFilters));
 		elements.zoomControl.addEventListener("input", () => setZoom(Number(elements.zoomControl.value)));
 
 		elements.map.addEventListener("wheel", (event) => {
@@ -281,12 +363,16 @@
 			elements.map.classList.add("is-panning");
 		});
 		elements.map.addEventListener("pointermove", (event) => {
+			updateCoordinates(event);
 			if (!state.drag || state.drag.pointerId !== event.pointerId || state.drag.mode !== "pan") {
 				return;
 			}
 			state.pan.x = state.drag.panX + event.clientX - state.drag.startX;
 			state.pan.y = state.drag.panY + event.clientY - state.drag.startY;
 			updateTransform();
+		});
+		elements.map.addEventListener("pointerleave", () => {
+			elements.coordReadout.hidden = true;
 		});
 		["pointerup", "pointercancel", "lostpointercapture"].forEach((eventName) => {
 			elements.map.addEventListener(eventName, () => {

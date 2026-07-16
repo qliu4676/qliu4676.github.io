@@ -222,7 +222,7 @@
 		elements.mapDragonflyG.setAttribute("aria-pressed", String(isG));
 		elements.mapDragonflyR.setAttribute("aria-pressed", String(!isG));
 		elements.dragonflyLabel.textContent = isG ? "Dragonfly g" : "Dragonfly r";
-		elements.dragonflyUnit.textContent = state.metadata.layers[state.dragonflyLayer].unit || "$kJy\\,sr^{-1}$";
+		elements.dragonflyUnit.textContent = state.metadata.layers[state.dragonflyLayer].unit || "kJy/sr";
 	}
 
 	function updateColormapButtons() {
@@ -264,7 +264,7 @@
 	function renderComparison() {
 		updateBandButtons();
 		updateColormapButtons();
-		elements.planckUnit.textContent = state.metadata.layers.planck.unit || "$W\\,m^{-2}\\,sr^{-1}$";
+		elements.planckUnit.textContent = state.metadata.layers.planck.unit || "W/m^2/sr";
 		elements.map.innerHTML = "";
 
 		const leftPane = document.createElement("div");

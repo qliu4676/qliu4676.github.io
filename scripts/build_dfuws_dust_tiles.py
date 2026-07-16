@@ -232,9 +232,9 @@ def layer_display_range(args: argparse.Namespace, layer_name: str) -> tuple[floa
 
 def display_unit(layer_name: str, header: fits.Header) -> str:
     if layer_name.startswith("dragonfly"):
-        return "$kJy\\,sr^{-1}$"
+        return "kJy/sr"
     if layer_name == "planck":
-        return "$W\\,m^{-2}\\,sr^{-1}$"
+        return "W/m^2/sr"
     return unit_from_header(header, "relative")
 
 

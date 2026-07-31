@@ -1,6 +1,6 @@
 {
   "schema_version": 1,
-  "created_utc": "2026-07-18T03:55:52.814072+00:00",
+  "created_utc": "2026-07-31T12:40:42.629691+00:00",
   "preview_only": false,
   "image": {
     "width": 8640,
@@ -43,7 +43,7 @@
     "tile_size": 512,
     "format": "webp",
     "webp_quality": 92,
-    "preview_max_side": 0,
+    "preview_max_side": 1600,
     "colormap": "inferno",
     "colormaps": [
       "viridis",
@@ -54,12 +54,16 @@
     "templates": {
       "dragonfly_g": "tiles/dragonfly_g/{z}/{x}/{y}.webp",
       "dragonfly_r": "tiles/dragonfly_r/{z}/{x}/{y}.webp",
-      "planck": "tiles/planck/{z}/{x}/{y}.webp"
+      "planck": "tiles/planck/{z}/{x}/{y}.webp",
+      "planck_ebv": "tiles/planck_ebv/{z}/{x}/{y}.webp",
+      "planck_temperature": "tiles/planck_temperature/{z}/{x}/{y}.webp",
+      "planck_tau353": "tiles/planck_tau353/{z}/{x}/{y}.webp"
     }
   },
   "layers": {
     "dragonfly_g": {
       "source_file": "mosaic_g_kJy_sr.fits",
+      "label": "Dragonfly g",
       "unit": "kJy/sr",
       "display_cuts": {
         "mode": "fixed",
@@ -78,6 +82,7 @@
     },
     "dragonfly_r": {
       "source_file": "mosaic_r_kJy_sr.fits",
+      "label": "Dragonfly r",
       "unit": "kJy/sr",
       "display_cuts": {
         "mode": "fixed",
@@ -96,6 +101,7 @@
     },
     "planck": {
       "source_file": "planck_radiance.fits",
+      "label": "Planck radiance",
       "unit": "W/m^2/sr",
       "display_cuts": {
         "mode": "fixed",
@@ -111,11 +117,74 @@
         "gray": "preview_planck_gray.webp"
       },
       "tile_count": 409
+    },
+    "planck_ebv": {
+      "source_file": "planck_ebv.fits.fz",
+      "label": "Planck E(B-V)",
+      "unit": "mag",
+      "display_cuts": {
+        "mode": "fixed",
+        "low_value": 0.02,
+        "high_value": 0.2,
+        "finite_pixels": 74649600
+      },
+      "preview": "preview_planck_ebv.webp",
+      "previews": {
+        "viridis": "preview_planck_ebv_viridis.webp",
+        "inferno": "preview_planck_ebv_inferno.webp",
+        "afmhot": "preview_planck_ebv_afmhot.webp",
+        "gray": "preview_planck_ebv_gray.webp"
+      },
+      "tile_count": 0
+    },
+    "planck_temperature": {
+      "source_file": "planck_temperature.fits.fz",
+      "label": "Planck T",
+      "unit": "K",
+      "display_cuts": {
+        "mode": "fixed",
+        "low_value": 16.0,
+        "high_value": 22.0,
+        "finite_pixels": 74649600
+      },
+      "preview": "preview_planck_temperature.webp",
+      "previews": {
+        "viridis": "preview_planck_temperature_viridis.webp",
+        "inferno": "preview_planck_temperature_inferno.webp",
+        "afmhot": "preview_planck_temperature_afmhot.webp",
+        "gray": "preview_planck_temperature_gray.webp"
+      },
+      "tile_count": 0
+    },
+    "planck_tau353": {
+      "source_file": "planck_tau353.fits.fz",
+      "label": "Planck \u03c4\u2083\u2085\u2083",
+      "unit": "",
+      "display_cuts": {
+        "mode": "fixed",
+        "low_value": 1e-06,
+        "high_value": 2.5e-05,
+        "finite_pixels": 74649600
+      },
+      "preview": "preview_planck_tau353.webp",
+      "previews": {
+        "viridis": "preview_planck_tau353_viridis.webp",
+        "inferno": "preview_planck_tau353_inferno.webp",
+        "afmhot": "preview_planck_tau353_afmhot.webp",
+        "gray": "preview_planck_tau353_gray.webp"
+      },
+      "tile_count": 0
     }
   },
   "alignment": {
     "grid": "Dragonfly g/r mosaic pixel grid",
     "planck_reprojected_to_dragonfly": false,
+    "planck_reprojected_layers": {
+      "planck": false,
+      "planck_ebv": false,
+      "planck_temperature": false,
+      "planck_tau353": false
+    },
     "tile_origin": "lower",
     "orientation_note": "Tiles are vertically flipped from array row order to match matplotlib imshow(origin='lower')."
   }

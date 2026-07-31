@@ -33,6 +33,18 @@ LAYERS = {
     "dragonfly_g": "mosaic_g_kJy_sr.fits",
     "dragonfly_r": "mosaic_r_kJy_sr.fits",
     "planck": "planck_radiance.fits",
+    "planck_ebv": "planck_ebv.fits.fz",
+    "planck_temperature": "planck_temperature.fits.fz",
+    "planck_tau353": "planck_tau353.fits.fz",
+}
+
+LAYER_LABELS = {
+    "dragonfly_g": "Dragonfly g",
+    "dragonfly_r": "Dragonfly r",
+    "planck": "Planck radiance",
+    "planck_ebv": "Planck E(B-V)",
+    "planck_temperature": "Planck T",
+	"planck_tau353": "Planck τ₃₅₃",
 }
 
 
@@ -83,6 +95,9 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--dragonfly-g-range", type=float, nargs=2, metavar=("VMIN", "VMAX"))
     parser.add_argument("--dragonfly-r-range", type=float, nargs=2, metavar=("VMIN", "VMAX"))
     parser.add_argument("--planck-range", type=float, nargs=2, metavar=("VMIN", "VMAX"))
+    parser.add_argument("--planck-ebv-range", type=float, nargs=2, metavar=("VMIN", "VMAX"))
+    parser.add_argument("--planck-temperature-range", type=float, nargs=2, metavar=("VMIN", "VMAX"))
+    parser.add_argument("--planck-tau353-range", type=float, nargs=2, metavar=("VMIN", "VMAX"))
     parser.add_argument("--colormap", default="inferno", help="Default Matplotlib colormap for generated map images.")
     parser.add_argument(
         "--colormaps",
@@ -122,6 +137,16 @@ def read_fits(path: Path) -> tuple[np.ndarray, fits.Header, WCS]:
         raise ValueError(f"Expected a 2D image in {path}, found shape {data.shape}")
 
     return data, header, WCS(header).celestial
+
+
+def read_fits_metadata(path: Path) -> tuple[fits.Header, WCS, tuple[int, int]]:
+    with fits.open(path, memmap=True) as hdul:
+        hdu = next((item for item in hdul if item.data is not None), None)
+        if hdu is None:
+            raise ValueError(f"No image data found in {path}")
+        header = hdu.header.copy()
+        shape = tuple(int(value) for value in hdu.data.shape[-2:])
+    return header, WCS(header).celestial, shape
 
 
 def unit_from_header(header: fits.Header, fallback: str) -> str:
@@ -227,6 +252,12 @@ def layer_display_range(args: argparse.Namespace, layer_name: str) -> tuple[floa
         return tuple(args.dragonfly_r_range) if args.dragonfly_r_range else None
     if layer_name == "planck":
         return tuple(args.planck_range) if args.planck_range else None
+    if layer_name == "planck_ebv":
+        return tuple(args.planck_ebv_range) if args.planck_ebv_range else None
+    if layer_name == "planck_temperature":
+        return tuple(args.planck_temperature_range) if args.planck_temperature_range else None
+    if layer_name == "planck_tau353":
+        return tuple(args.planck_tau353_range) if args.planck_tau353_range else None
     return None
 
 
@@ -235,7 +266,9 @@ def display_unit(layer_name: str, header: fits.Header) -> str:
         return "kJy/sr"
     if layer_name == "planck":
         return "W/m^2/sr"
-    return unit_from_header(header, "relative")
+    if layer_name == "planck_tau353":
+        return ""
+    return unit_from_header(header, "")
 
 
 def normalize_rgba(
@@ -373,23 +406,31 @@ def main() -> None:
         shutil.rmtree(args.output_dir)
     args.output_dir.mkdir(parents=True, exist_ok=True)
 
-    arrays: dict[str, np.ndarray] = {}
     headers: dict[str, fits.Header] = {}
     wcses: dict[str, WCS] = {}
+    shapes: dict[str, tuple[int, int]] = {}
+    available_layers: dict[str, Path] = {}
 
     for layer_name, filename in LAYERS.items():
-        arrays[layer_name], headers[layer_name], wcses[layer_name] = read_fits(args.input_dir / filename)
+        path = args.input_dir / filename
+        if not path.exists() and layer_name.startswith("planck_"):
+            print(f"Skipping optional Planck layer {layer_name}: {path} not found")
+            continue
+        headers[layer_name], wcses[layer_name], shapes[layer_name] = read_fits_metadata(path)
+        available_layers[layer_name] = path
 
-    target_shape = arrays["dragonfly_g"].shape
+    target_shape = shapes["dragonfly_g"]
     target_wcs = wcses["dragonfly_g"]
-    if arrays["dragonfly_r"].shape != target_shape or not wcs_close(
-        target_wcs, wcses["dragonfly_r"], target_shape, arrays["dragonfly_r"].shape
+    if shapes["dragonfly_r"] != target_shape or not wcs_close(
+        target_wcs, wcses["dragonfly_r"], target_shape, shapes["dragonfly_r"]
     ):
         raise RuntimeError("Dragonfly g and r mosaics do not share the same grid/WCS.")
 
-    arrays["planck"], planck_reprojected = maybe_reproject_planck(
-        arrays["planck"], wcses["planck"], target_wcs, target_shape
-    )
+    reprojected_layers = {}
+    for layer_name in [name for name in available_layers if name.startswith("planck")]:
+        reprojected_layers[layer_name] = not wcs_close(
+            target_wcs, wcses[layer_name], target_shape, shapes[layer_name]
+        )
 
     height, width = target_shape
     tile_templates = {}
@@ -399,7 +440,10 @@ def main() -> None:
     if args.colormap not in preview_colormaps:
         preview_colormaps = [args.colormap, *preview_colormaps]
 
-    for layer_name, data in arrays.items():
+    for layer_name, path in available_layers.items():
+        data, header, wcs = read_fits(path)
+        if layer_name.startswith("planck"):
+            data, _ = maybe_reproject_planck(data, wcs, target_wcs, target_shape)
         layer_range = layer_display_range(args, layer_name)
         cuts = fixed_cuts(data, layer_range) if layer_range else finite_cuts(data, tuple(args.cuts))
         default_rgba = normalize_rgba(data, cuts, origin="lower", colormap=args.colormap)
@@ -421,7 +465,7 @@ def main() -> None:
         tile_info = {"tile_count": int(existing_layer.get("tile_count", 0))}
         if not args.preview_only and not args.update_previews_only:
             tile_info = build_tiles(
-                rgba,
+                default_rgba,
                 args.output_dir,
                 layer_name,
                 args.max_zoom,
@@ -433,6 +477,7 @@ def main() -> None:
         tile_templates[layer_name] = f"tiles/{layer_name}/{{z}}/{{x}}/{{y}}.{args.format}"
         layer_meta[layer_name] = {
             "source_file": LAYERS[layer_name],
+            "label": LAYER_LABELS.get(layer_name, layer_name),
             "unit": display_unit(layer_name, headers[layer_name]),
             "display_cuts": cuts,
             "preview": preview_name,
@@ -464,7 +509,8 @@ def main() -> None:
         "layers": layer_meta,
         "alignment": {
             "grid": "Dragonfly g/r mosaic pixel grid",
-            "planck_reprojected_to_dragonfly": bool(planck_reprojected),
+            "planck_reprojected_to_dragonfly": bool(reprojected_layers.get("planck", False)),
+            "planck_reprojected_layers": {name: bool(value) for name, value in reprojected_layers.items()},
             "tile_origin": "lower",
             "orientation_note": "Tiles are vertically flipped from array row order to match matplotlib imshow(origin='lower').",
         },
@@ -482,7 +528,7 @@ def main() -> None:
     print(f"Wrote {args.output_dir}")
     print(f"Output size: {human_size(size)}")
     print(f"Image shape: {height} x {width}")
-    print(f"Planck reprojected: {planck_reprojected}")
+    print(f"Planck reprojected layers: {reprojected_layers}")
     print(f"Preview only: {args.preview_only}")
 
 

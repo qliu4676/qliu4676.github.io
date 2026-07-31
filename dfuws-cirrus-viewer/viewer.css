@@ -273,8 +273,8 @@ input {
 
 .controls {
 	display: grid;
-	grid-template-columns: minmax(160px, 220px) repeat(3, minmax(220px, 1fr));
-	gap: 18px;
+	grid-template-columns: minmax(128px, 150px) minmax(280px, 340px) minmax(250px, 300px) minmax(200px, 240px) minmax(360px, 1fr);
+	gap: 14px;
 	padding: 14px 18px 18px;
 	background: #0b0d10;
 	border-top: 1px solid rgba(255, 255, 255, 0.12);
@@ -312,6 +312,11 @@ input {
 	width: min(100%, 320px);
 }
 
+.segmented-planck {
+	grid-template-columns: 1.2fr 1.65fr 0.8fr 1.75fr;
+	width: min(100%, 460px);
+}
+
 .segmented button {
 	min-height: 38px;
 	border: 0;
@@ -328,7 +333,7 @@ input {
 
 label {
 	display: grid;
-	grid-template-columns: 88px minmax(120px, 1fr);
+	grid-template-columns: 76px minmax(90px, 1fr);
 	align-items: center;
 	gap: 10px;
 	color: var(--muted);
@@ -340,6 +345,14 @@ input[type="range"] {
 	accent-color: var(--accent);
 }
 
+.display-control input[type="range"] {
+	max-width: 150px;
+}
+
+.view-control input[type="range"] {
+	max-width: 105px;
+}
+
 .leaflet-container {
 	background: #010203;
 	font-family: Arial, Helvetica, sans-serif;
@@ -347,6 +360,16 @@ input[type="range"] {
 
 .leaflet-control-attribution {
 	display: none;
+}
+
+@media (min-width: 861px) and (max-width: 1360px) {
+	.controls {
+		grid-template-columns: minmax(128px, 150px) minmax(280px, 1fr) minmax(250px, 1fr) minmax(200px, 240px);
+	}
+
+	.controls > :last-child {
+		grid-column: 1 / -1;
+	}
 }
 
 @media (max-width: 860px) {

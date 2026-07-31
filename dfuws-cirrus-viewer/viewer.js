@@ -5,6 +5,7 @@
 	const state = {
 		metadata: null,
 		dragonflyLayer: "dragonfly_g",
+		planckLayer: "planck",
 		colormap: "inferno",
 		split: 0.5,
 		zoom: 1,
@@ -21,8 +22,13 @@
 		status: document.getElementById("status"),
 		mapDragonflyG: document.getElementById("mapDragonflyG"),
 		mapDragonflyR: document.getElementById("mapDragonflyR"),
+		mapPlanckRadiance: document.getElementById("mapPlanckRadiance"),
+		mapPlanckEbv: document.getElementById("mapPlanckEbv"),
+		mapPlanckTemperature: document.getElementById("mapPlanckTemperature"),
+		mapPlanckTau353: document.getElementById("mapPlanckTau353"),
 		dragonflyLabel: document.getElementById("dragonflyLabel"),
 		dragonflyUnit: document.getElementById("dragonflyUnit"),
+		planckLabel: document.getElementById("planckLabel"),
 		planckUnit: document.getElementById("planckUnit"),
 		coordReadout: document.getElementById("coordReadout"),
 		scaleBar: document.getElementById("scaleBar"),
@@ -225,6 +231,32 @@
 		elements.dragonflyUnit.textContent = state.metadata.layers[state.dragonflyLayer].unit || "kJy/sr";
 	}
 
+	function updatePlanckButtons() {
+		if (!state.metadata.layers[state.planckLayer]) {
+			state.planckLayer = "planck";
+		}
+		const buttons = {
+			planck: elements.mapPlanckRadiance,
+			planck_ebv: elements.mapPlanckEbv,
+			planck_temperature: elements.mapPlanckTemperature,
+			planck_tau353: elements.mapPlanckTau353,
+		};
+		Object.entries(buttons).forEach(([name, button]) => {
+			const available = Boolean(state.metadata.layers[name]);
+			button.hidden = !available;
+			button.disabled = !available;
+			if (!available) {
+				return;
+			}
+			const active = state.planckLayer === name;
+			button.classList.toggle("active", active);
+			button.setAttribute("aria-pressed", String(active));
+		});
+		const layer = state.metadata.layers[state.planckLayer];
+		elements.planckLabel.textContent = layer.label || "Planck dust map";
+		elements.planckUnit.textContent = layer.unit || "";
+	}
+
 	function updateColormapButtons() {
 		const buttons = {
 			viridis: elements.cmapViridis,
@@ -263,8 +295,8 @@
 
 	function renderComparison() {
 		updateBandButtons();
+		updatePlanckButtons();
 		updateColormapButtons();
-		elements.planckUnit.textContent = state.metadata.layers.planck.unit || "W/m^2/sr";
 		elements.map.innerHTML = "";
 
 		const leftPane = document.createElement("div");
@@ -273,7 +305,7 @@
 
 		const rightPane = document.createElement("div");
 		rightPane.className = "preview-layer preview-right";
-		rightPane.appendChild(makeImage("planck", "Planck radiance preview"));
+		rightPane.appendChild(makeImage(state.planckLayer, `${elements.planckLabel.textContent} preview`));
 
 		elements.map.append(leftPane, rightPane);
 		applyFilters();
@@ -365,6 +397,20 @@
 		elements.mapDragonflyR.addEventListener("click", () => {
 			state.dragonflyLayer = "dragonfly_r";
 			renderComparison();
+		});
+		[
+			["planck", elements.mapPlanckRadiance],
+			["planck_ebv", elements.mapPlanckEbv],
+			["planck_temperature", elements.mapPlanckTemperature],
+			["planck_tau353", elements.mapPlanckTau353],
+		].forEach(([name, button]) => {
+			button.addEventListener("click", () => {
+				if (!state.metadata || !state.metadata.layers[name]) {
+					return;
+				}
+				state.planckLayer = name;
+				renderComparison();
+			});
 		});
 		[
 			["viridis", elements.cmapViridis],

@@ -95,8 +95,11 @@
 
 	function updateTransform() {
 		clampPan();
+		const referenceImage = activeImages()[0];
+		const referenceWidth = referenceImage && referenceImage.naturalWidth;
 		activeImages().forEach((image) => {
-			image.style.transform = `translate(${state.pan.x}px, ${state.pan.y}px) scale(${state.zoom})`;
+			const layerScale = referenceWidth && image.naturalWidth ? referenceWidth / image.naturalWidth : 1;
+			image.style.transform = `translate(${state.pan.x}px, ${state.pan.y}px) scale(${state.zoom * layerScale})`;
 		});
 		updateScaleBar();
 	}

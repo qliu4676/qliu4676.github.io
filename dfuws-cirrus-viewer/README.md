@@ -25,6 +25,7 @@ python scripts/build_dfuws_dust_tiles.py \
   --planck-ebv-range 0.02 0.20 \
   --planck-temperature-range 16 22 \
   --planck-tau353-range 1e-6 2.5e-5 \
+  --dragonfly-preview-max-side 3200 \
   --colormap inferno \
   --colormaps viridis inferno afmhot gray \
   --overwrite
@@ -55,6 +56,7 @@ python scripts/build_dfuws_dust_tiles.py \
   --planck-ebv-range 0.02 0.20 \
   --planck-temperature-range 16 22 \
   --planck-tau353-range 1e-6 2.5e-5 \
+  --dragonfly-preview-max-side 3200 \
   --colormap inferno \
   --colormaps viridis inferno afmhot gray \
   --update-previews-only
@@ -90,3 +92,4 @@ python scripts/build_dfuws_dust_tiles.py \
 - The viewer reads `assets/dfuws_dust_viewer/metadata.json`; tile paths and file extensions come from that metadata.
 - If the generated output is too large for GitHub Pages, reduce `--max-zoom`, increase `--tile-size`, keep `--format webp`, lower `--webp-quality`, or host the tiles separately.
 - After generating tiles, check the script's printed output directory size before committing.
+- Dragonfly g/r previews default to 3200 x 3200 pixels; Planck previews remain 1600 x 1600. Adjust `--dragonfly-preview-max-side` if browser memory or asset size becomes an issue.

@@ -85,6 +85,12 @@ def parse_args() -> argparse.Namespace:
         help="Maximum preview image side length in pixels. Use 0 to keep full resolution.",
     )
     parser.add_argument(
+        "--dragonfly-preview-max-side",
+        type=int,
+        default=3200,
+        help="Maximum Dragonfly g/r preview side length in pixels. Use 0 to keep full resolution.",
+    )
+    parser.add_argument(
         "--cuts",
         type=float,
         nargs=2,
@@ -447,19 +453,20 @@ def main() -> None:
         layer_range = layer_display_range(args, layer_name)
         cuts = fixed_cuts(data, layer_range) if layer_range else finite_cuts(data, tuple(args.cuts))
         default_rgba = normalize_rgba(data, cuts, origin="lower", colormap=args.colormap)
+        preview_max_side = args.dragonfly_preview_max_side if layer_name.startswith("dragonfly") else args.preview_max_side
         preview_name = f"preview_{layer_name}.{args.format}"
         preview_map = {}
         for cmap_name in preview_colormaps:
             rgba = default_rgba if cmap_name == args.colormap else normalize_rgba(data, cuts, origin="lower", colormap=cmap_name)
             cmap_preview_name = f"preview_{layer_name}_{cmap_name}.{args.format}"
             save_image(
-                build_preview(rgba, args.preview_max_side),
+                build_preview(rgba, preview_max_side),
                 args.output_dir / cmap_preview_name,
                 args.format,
                 args.webp_quality,
             )
             preview_map[cmap_name] = cmap_preview_name
-        save_image(build_preview(default_rgba, args.preview_max_side), args.output_dir / preview_name, args.format, args.webp_quality)
+        save_image(build_preview(default_rgba, preview_max_side), args.output_dir / preview_name, args.format, args.webp_quality)
 
         existing_layer = existing_metadata.get("layers", {}).get(layer_name, {})
         tile_info = {"tile_count": int(existing_layer.get("tile_count", 0))}
@@ -482,6 +489,7 @@ def main() -> None:
             "display_cuts": cuts,
             "preview": preview_name,
             "previews": preview_map,
+            "preview_max_side": int(preview_max_side),
             **tile_info,
         }
 

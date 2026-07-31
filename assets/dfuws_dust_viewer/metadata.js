@@ -1,6 +1,6 @@
 window.DFUWS_METADATA = {
   "schema_version": 1,
-  "created_utc": "2026-07-31T12:40:42.629691+00:00",
+  "created_utc": "2026-07-31T12:52:01.120448+00:00",
   "preview_only": false,
   "image": {
     "width": 8640,
@@ -78,6 +78,7 @@ window.DFUWS_METADATA = {
         "afmhot": "preview_dragonfly_g_afmhot.webp",
         "gray": "preview_dragonfly_g_gray.webp"
       },
+      "preview_max_side": 3200,
       "tile_count": 409
     },
     "dragonfly_r": {
@@ -97,6 +98,7 @@ window.DFUWS_METADATA = {
         "afmhot": "preview_dragonfly_r_afmhot.webp",
         "gray": "preview_dragonfly_r_gray.webp"
       },
+      "preview_max_side": 3200,
       "tile_count": 409
     },
     "planck": {
@@ -116,6 +118,7 @@ window.DFUWS_METADATA = {
         "afmhot": "preview_planck_afmhot.webp",
         "gray": "preview_planck_gray.webp"
       },
+      "preview_max_side": 1600,
       "tile_count": 409
     },
     "planck_ebv": {
@@ -135,6 +138,7 @@ window.DFUWS_METADATA = {
         "afmhot": "preview_planck_ebv_afmhot.webp",
         "gray": "preview_planck_ebv_gray.webp"
       },
+      "preview_max_side": 1600,
       "tile_count": 0
     },
     "planck_temperature": {
@@ -154,6 +158,7 @@ window.DFUWS_METADATA = {
         "afmhot": "preview_planck_temperature_afmhot.webp",
         "gray": "preview_planck_temperature_gray.webp"
       },
+      "preview_max_side": 1600,
       "tile_count": 0
     },
     "planck_tau353": {
@@ -173,6 +178,7 @@ window.DFUWS_METADATA = {
         "afmhot": "preview_planck_tau353_afmhot.webp",
         "gray": "preview_planck_tau353_gray.webp"
       },
+      "preview_max_side": 1600,
       "tile_count": 0
     }
   },

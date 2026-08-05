@@ -1,0 +1,198 @@
+<div id="bd12-geometry-accurate" style="width:100%;color:var(--foreground);font-family:var(--font-sans);--background:#ffffff;--foreground:#28343b;--card:#ffffff;--card-foreground:#28343b;--muted:#edf3f4;--muted-foreground:#5e7078;--border:#ccdadd;--primary:#648880;--accent:#805ad5;--viz-series-1:#2878b5;--viz-series-2:#d97706;--viz-series-3:#27845b;--font-sans:'Source Sans Pro',Helvetica,sans-serif;">
+  <style>
+    @import url("https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,500");
+    html,body{margin:0;background:#fff}
+    #bd12-geometry-accurate .controls{display:grid;grid-template-columns:repeat(5,minmax(110px,1fr));gap:12px;margin:0 0 10px}
+    #bd12-geometry-accurate .control{min-width:0}
+    #bd12-geometry-accurate .control-head{display:flex;justify-content:space-between;gap:8px;color:var(--foreground);font-size:1.05rem;line-height:1.35}
+    #bd12-geometry-accurate .control-head output{color:var(--muted-foreground);font-variant-numeric:tabular-nums}
+    #bd12-geometry-accurate input[type="range"]{width:100%;accent-color:var(--primary)}
+    #bd12-geometry-accurate svg{display:block;width:100%;height:auto}
+    #bd12-geometry-accurate text{fill:var(--foreground);font-weight:400;font-size:17px}
+    #bd12-geometry-accurate text[font-weight="500"]{font-size:20px}
+    #bd12-geometry-accurate .secondary{fill:var(--muted-foreground);font-size:15px}
+    #bd12-geometry-accurate .panel{fill:var(--card);fill-opacity:.38;stroke:var(--border);stroke-width:1}
+    #bd12-geometry-accurate .plane{fill:var(--muted);fill-opacity:.22;stroke:var(--border);stroke-width:1}
+    #bd12-geometry-accurate .sheet{fill:var(--viz-series-2);fill-opacity:.08;stroke:var(--viz-series-2);stroke-opacity:.72;stroke-width:1.5}
+    #bd12-geometry-accurate .construction{fill:none;stroke:var(--muted-foreground);stroke-width:1;stroke-dasharray:5 5}
+    #bd12-geometry-accurate .axis{fill:none;stroke:var(--muted-foreground);stroke-width:1.25}
+    #bd12-geometry-accurate .dimension{fill:none;stroke:var(--foreground);stroke-width:1.25}
+    #bd12-geometry-accurate .observer-line{fill:none;stroke:var(--viz-series-1);stroke-width:3}
+    #bd12-geometry-accurate .source-line{fill:none;stroke:var(--viz-series-2);stroke-width:3}
+    #bd12-geometry-accurate .source-reverse{fill:none;stroke:var(--viz-series-2);stroke-width:2;stroke-dasharray:6 4}
+    #bd12-geometry-accurate .annulus{fill:none;stroke:var(--viz-series-2);stroke-width:2}
+    #bd12-geometry-accurate .grain-point{fill:var(--viz-series-3);stroke:var(--card);stroke-width:2}
+    #bd12-geometry-accurate .source-point{fill:var(--viz-series-2);stroke:var(--card);stroke-width:2}
+    #bd12-geometry-accurate .observer-point{fill:var(--viz-series-1);stroke:var(--card);stroke-width:2}
+    #bd12-geometry-accurate .projection-point{fill:var(--muted-foreground);stroke:var(--card);stroke-width:1.5}
+    #bd12-geometry-accurate .angle{fill:none;stroke:var(--accent);stroke-width:2}
+    #bd12-geometry-accurate .swatch{stroke:none}
+    @media(max-width:760px){#bd12-geometry-accurate .controls{grid-template-columns:repeat(2,minmax(120px,1fr))}}
+  </style>
+
+  <div class="controls" aria-label="Geometry controls">
+    <label class="control"><span class="control-head"><span>grain height z</span><output id="out-z">1.00</output></span><input id="ctl-z" type="range" min="0.2" max="2.5" step="0.01" value="1"></label>
+    <label class="control"><span class="control-head"><span>source height zₛ</span><output id="out-zs">0.20</output></span><input id="ctl-zs" type="range" min="-1" max="3" step="0.01" value="0.2"></label>
+    <label class="control"><span class="control-head"><span>latitude b</span><output id="out-b">40°</output></span><input id="ctl-b" type="range" min="20" max="85" step="1" value="40"></label>
+    <label class="control"><span class="control-head"><span>annulus radius R</span><output id="out-r">0.75</output></span><input id="ctl-r" type="range" min="0.2" max="1.5" step="0.01" value="0.75"></label>
+    <label class="control"><span class="control-head"><span>azimuth θ</span><output id="out-theta">0°</output></span><input id="ctl-theta" type="range" min="0" max="360" step="1" value="0"></label>
+  </div>
+
+  <svg viewBox="0 0 1160 1000" role="img" aria-labelledby="geo-title geo-desc">
+    <title id="geo-title">BD12 three-dimensional scattering geometry</title>
+    <desc id="geo-desc">A consistent orthographic projection of observer, grain, stellar annulus and source, with exact top view and exact local scattering-angle view.</desc>
+    <defs>
+      <marker id="bd12-arrow-observer" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto" markerUnits="strokeWidth"><path d="M0 0L10 5L0 10Z" fill="var(--viz-series-1)"/></marker>
+      <marker id="bd12-arrow-source" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="9" markerHeight="9" orient="auto" markerUnits="strokeWidth"><path d="M0 0L10 5L0 10Z" fill="var(--viz-series-2)"/></marker>
+      <marker id="bd12-arrow-dim" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse" markerUnits="strokeWidth"><path d="M0 0L8 4L0 8Z" fill="var(--foreground)"/></marker>
+      <marker id="bd12-arrow-axis" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="7" markerHeight="7" orient="auto" markerUnits="strokeWidth"><path d="M0 0L8 4L0 8Z" fill="var(--muted-foreground)"/></marker>
+    </defs>
+
+    <rect class="panel" x="8" y="8" width="1144" height="620" rx="8"/>
+    <text x="28" y="38" font-weight="500">Consistent 3D projection</text>
+    <polygon id="galactic-plane" class="plane" points=""/>
+    <polygon id="stellar-sheet" class="sheet" points=""/>
+    <polyline id="main-annulus" class="annulus" points=""/>
+    <line id="main-x-axis" class="axis" marker-end="url(#bd12-arrow-axis)"/>
+    <line id="main-z-axis" class="axis" marker-end="url(#bd12-arrow-axis)"/>
+    <line id="main-y-axis" class="axis" marker-end="url(#bd12-arrow-axis)"/>
+    <text id="main-x-label" class="secondary">x: away from observer</text>
+    <text id="main-y-label" class="secondary">y</text>
+    <text id="main-z-label" class="secondary">z</text>
+    <line id="vertical-gq" class="construction"/>
+    <line id="vertical-gp" class="construction"/>
+    <line id="horizontal-g" class="construction"/>
+    <line id="horizontal-p" class="construction"/>
+    <line id="sightline-og" class="construction"/>
+    <line id="incoming-sg" class="source-line" marker-end="url(#bd12-arrow-source)"/>
+    <line id="outgoing-go" class="observer-line" marker-end="url(#bd12-arrow-observer)"/>
+    <line id="dim-z" class="dimension" marker-start="url(#bd12-arrow-dim)" marker-end="url(#bd12-arrow-dim)"/>
+    <line id="dim-zs" class="dimension" marker-start="url(#bd12-arrow-dim)" marker-end="url(#bd12-arrow-dim)"/>
+    <polyline id="arc-b" class="angle" points=""/>
+    <text id="label-b">b</text>
+    <text id="label-z">z</text>
+    <text id="label-zs">zₛ</text>
+    <text id="label-plane" class="secondary">Galactic midplane: z = 0</text>
+    <text id="label-sheet">stellar sheet: z = zₛ</text>
+    <text id="label-incoming">kᵢₙ : S → G</text>
+    <text id="label-outgoing">kₒᵤₜ : G → O</text>
+    <circle id="point-o" class="observer-point" r="8"/>
+    <circle id="point-g" class="grain-point" r="9"/>
+    <circle id="point-s" class="source-point" r="8"/>
+    <circle id="point-p" class="projection-point" r="5"/>
+    <circle id="point-q" class="projection-point" r="5"/>
+    <text id="label-o" font-weight="500">O observer</text>
+    <text id="label-g" font-weight="500">G grain</text>
+    <text id="label-s" font-weight="500">S source</text>
+    <text id="label-p" class="secondary">P</text>
+    <text id="label-q" class="secondary">Q</text>
+
+    <rect class="panel" x="8" y="644" width="560" height="300" rx="8"/>
+    <text x="28" y="674" font-weight="500">Exact top view of the stellar sheet</text>
+    <circle id="top-annulus" class="annulus" fill="none"/>
+    <line id="top-away-axis" class="axis" marker-end="url(#bd12-arrow-axis)"/>
+    <line id="top-toward-observer" class="construction" marker-end="url(#bd12-arrow-axis)"/>
+    <line id="top-radius" class="source-line" marker-end="url(#bd12-arrow-source)"/>
+    <polyline id="arc-theta" class="angle" points=""/>
+    <circle id="top-p" class="projection-point" r="6"/>
+    <circle id="top-s" class="source-point" r="8"/>
+    <text id="top-label-p" class="secondary">P</text>
+    <text id="top-label-s" font-weight="500">S</text>
+    <text id="top-label-r">R</text>
+    <text id="top-label-theta">θ</text>
+    <text x="28" y="923" class="secondary">θ = 0 points away from the observer</text>
+
+    <rect class="panel" x="584" y="644" width="568" height="300" rx="8"/>
+    <text x="604" y="674" font-weight="500">Exact local scattering-angle plane</text>
+    <line id="local-kout" class="observer-line" marker-end="url(#bd12-arrow-observer)"/>
+    <line id="local-kin" class="source-line" marker-end="url(#bd12-arrow-source)"/>
+    <line id="local-gs" class="source-reverse" marker-end="url(#bd12-arrow-source)"/>
+    <polyline id="arc-xi" class="angle" points=""/>
+    <circle id="local-g" class="grain-point" r="9"/>
+    <circle id="local-o" class="observer-point" r="7"/>
+    <circle id="local-s" class="source-point" r="7"/>
+    <text id="local-label-kout">kₒᵤₜ = G→O</text>
+    <text id="local-label-kin">kᵢₙ = S→G</text>
+    <text id="local-label-gs">G→S = −kᵢₙ</text>
+    <text id="local-label-xi">ξ</text>
+    <text id="local-angle-values" class="secondary"></text>
+
+    <g transform="translate(25 974)">
+      <circle class="observer-point" cx="0" cy="0" r="7"/><text x="14" y="5">observer / outgoing direction</text>
+      <circle class="grain-point" cx="260" cy="0" r="7"/><text x="274" y="5">grain</text>
+      <circle class="source-point" cx="390" cy="0" r="7"/><text x="404" y="5">source / incoming direction</text>
+      <line class="construction" x1="680" y1="0" x2="745" y2="0"/><text x="758" y="5">projection or construction</text>
+    </g>
+  </svg>
+
+  <script>
+    (() => {
+      const root=document.getElementById('bd12-geometry-accurate');
+      const q=s=>root.querySelector(s);
+      const controls={z:q('#ctl-z'),zs:q('#ctl-zs'),b:q('#ctl-b'),R:q('#ctl-r'),theta:q('#ctl-theta')};
+      const outputs={z:q('#out-z'),zs:q('#out-zs'),b:q('#out-b'),R:q('#out-r'),theta:q('#out-theta')};
+      let origin=[64,520],scale=115;
+      const project=([x,y,z])=>[origin[0]+scale*(x+0.34*y),origin[1]+scale*(-z-0.23*y)];
+      const setLine=(id,a,b)=>{const e=q(id);e.setAttribute('x1',a[0]);e.setAttribute('y1',a[1]);e.setAttribute('x2',b[0]);e.setAttribute('y2',b[1]);};
+      const setPoint=(id,p)=>{const e=q(id);e.setAttribute('cx',p[0]);e.setAttribute('cy',p[1]);};
+      const setText=(id,p,dx=0,dy=0)=>{const e=q(id);e.setAttribute('x',p[0]+dx);e.setAttribute('y',p[1]+dy);};
+      const points=a=>a.map(p=>p.join(',')).join(' ');
+      const unit=v=>{const n=Math.hypot(...v);return v.map(x=>x/n)};
+      const dot=(a,b)=>a.reduce((s,x,i)=>s+x*b[i],0);
+      const clamp=x=>Math.max(-1,Math.min(1,x));
+      const midpoint=(a,b)=>[(a[0]+b[0])/2,(a[1]+b[1])/2];
+      const arcPoints=(cx,cy,r,a0,a1,n=40)=>{const out=[];for(let i=0;i<=n;i++){const a=a0+(a1-a0)*i/n;out.push([cx+r*Math.cos(a),cy-r*Math.sin(a)])}return out};
+
+      function update(){
+        const z=+controls.z.value,zs=+controls.zs.value,bDeg=+controls.b.value,R=+controls.R.value,thetaDeg=+controls.theta.value;
+        const b=bDeg*Math.PI/180,theta=thetaDeg*Math.PI/180,xg=z/Math.tan(b);
+        const O=[0,0,0],Q=[xg,0,0],G=[xg,0,z],P=[xg,0,zs],S=[xg+R*Math.cos(theta),R*Math.sin(theta),zs];
+        const xlo=Math.min(0,xg-R-.4),xhi=xg+R+.6,ymax=R+.4,zlo=Math.min(0,zs)-.12,zhi=Math.max(z,zs)+.18;
+        const raw=([x,y,zz])=>[x+0.34*y,-zz-0.23*y];
+        const bounds=[];for(const xx of [xlo,xhi])for(const yy of [-ymax,ymax])for(const zz of [zlo,zhi])bounds.push(raw([xx,yy,zz]));
+        const us=bounds.map(v=>v[0]),vs=bounds.map(v=>v[1]),umin=Math.min(...us),umax=Math.max(...us),vmin=Math.min(...vs),vmax=Math.max(...vs);
+        scale=Math.min(1060/(umax-umin),520/(vmax-vmin),260);
+        origin=[50-scale*umin,70-scale*vmin];
+        const pO=project(O),pQ=project(Q),pG=project(G),pP=project(P),pS=project(S);
+        const xmax=xhi;
+        q('#galactic-plane').setAttribute('points',points([[xlo,-ymax,0],[xmax,-ymax,0],[xmax,ymax,0],[xlo,ymax,0]].map(project)));
+        q('#stellar-sheet').setAttribute('points',points([[xg-R-.25,-ymax,zs],[xg+R+.25,-ymax,zs],[xg+R+.25,ymax,zs],[xg-R-.25,ymax,zs]].map(project)));
+        const ring=[];for(let i=0;i<=100;i++){const a=2*Math.PI*i/100;ring.push(project([xg+R*Math.cos(a),R*Math.sin(a),zs]))}q('#main-annulus').setAttribute('points',points(ring));
+        setLine('#main-x-axis',pO,project([xmax-.08,0,0]));setLine('#main-y-axis',pO,project([0,ymax-.05,0]));setLine('#main-z-axis',pO,project([0,0,zhi-.05]));
+        setText('#main-x-label',project([xmax-.08,0,0]),-118,22);setText('#main-y-label',project([0,ymax-.05,0]),8,-5);setText('#main-z-label',project([0,0,zhi-.05]),8,6);
+        setLine('#vertical-gq',pQ,pG);setLine('#vertical-gp',pP,pG);setLine('#horizontal-g',project([0,0,z]),pG);setLine('#horizontal-p',project([0,0,zs]),pP);setLine('#sightline-og',pO,pG);
+        setLine('#incoming-sg',pS,pG);setLine('#outgoing-go',pG,pO);
+        const zDimX=pQ[0]-28,zsDimX=pQ[0]-58;setLine('#dim-z',[zDimX,pQ[1]],[zDimX,pG[1]]);setLine('#dim-zs',[zsDimX,pQ[1]],[zsDimX,pP[1]]);
+        setText('#label-z',[zDimX,(pQ[1]+pG[1])/2],-18,5);setText('#label-zs',[zsDimX,(pQ[1]+pP[1])/2],-24,5);
+        const bRadius=Math.min(72,Math.max(38,scale*.28));q('#arc-b').setAttribute('points',points(arcPoints(pO[0],pO[1],bRadius,0,b,32)));setText('#label-b',[pO[0]+(bRadius+10)*Math.cos(b/2),pO[1]-(bRadius+10)*Math.sin(b/2)],4,3);
+        setPoint('#point-o',pO);setPoint('#point-q',pQ);setPoint('#point-g',pG);setPoint('#point-p',pP);setPoint('#point-s',pS);
+        setText('#label-o',pO,-4,24);setText('#label-q',pQ,8,17);setText('#label-g',pG,12,-10);setText('#label-p',pP,8,-8);setText('#label-s',pS,11,-10);
+        setText('#label-plane',project([xlo+.30*(xmax-xlo),-ymax,0]),-35,20);setText('#label-sheet',project([xg-R-.18,-ymax,zs]),-8,-10);
+        setText('#label-incoming',midpoint(pS,pG),10,-9);setText('#label-outgoing',midpoint(pG,pO),10,-9);
+
+        const tc=[290,795],tr=R*90;
+        q('#top-annulus').setAttribute('cx',tc[0]);q('#top-annulus').setAttribute('cy',tc[1]);q('#top-annulus').setAttribute('r',tr);
+        const ts=[tc[0]+tr*Math.cos(theta),tc[1]-tr*Math.sin(theta)];
+        setLine('#top-away-axis',tc,[tc[0]+Math.max(tr+34,160),tc[1]]);setLine('#top-toward-observer',[tc[0]-Math.max(tr+35,160),tc[1]],tc);setLine('#top-radius',tc,ts);
+        const thetaArcEnd=thetaDeg===360?2*Math.PI-0.001:theta;q('#arc-theta').setAttribute('points',points(arcPoints(tc[0],tc[1],Math.min(43,tr*.52),0,thetaArcEnd,Math.max(10,Math.ceil(thetaDeg/6)))));
+        setPoint('#top-p',tc);setPoint('#top-s',ts);setText('#top-label-p',tc,9,18);setText('#top-label-s',ts,10,-8);setText('#top-label-r',midpoint(tc,ts),7,-7);
+        const ta=theta===0?0.18:theta/2;setText('#top-label-theta',[tc[0]+54*Math.cos(ta),tc[1]-54*Math.sin(ta)],4,3);
+
+        const gs=unit(S.map((x,i)=>x-G[i])),kin=gs.map(x=>-x),kout=unit(O.map((x,i)=>x-G[i]));
+        const cosXi=clamp(dot(kin,kout)),xi=Math.acos(cosXi),gamma=Math.PI-xi;
+        const lc=[785,810],lr=120,koutA=0,kinA=xi,gsA=xi+Math.PI;
+        const endpoint=a=>[lc[0]+lr*Math.cos(a),lc[1]-lr*Math.sin(a)];
+        const leOut=endpoint(koutA),leIn=endpoint(kinA),leGs=endpoint(gsA);
+        setLine('#local-kout',lc,leOut);setLine('#local-kin',lc,leIn);setLine('#local-gs',lc,leGs);
+        q('#arc-xi').setAttribute('points',points(arcPoints(lc[0],lc[1],46,0,xi,36)));
+        setPoint('#local-g',lc);setPoint('#local-o',leOut);setPoint('#local-s',leGs);
+        setText('#local-label-kout',leOut,-104,23);setText('#local-label-kin',leIn,8,-7);setText('#local-label-gs',leGs,8,18);
+        const xa=xi/2;setText('#local-label-xi',[lc[0]+58*Math.cos(xa),lc[1]-58*Math.sin(xa)],4,4);
+        q('#local-angle-values').setAttribute('x',604);q('#local-angle-values').setAttribute('y',922);q('#local-angle-values').textContent=`ξ = ${(xi*180/Math.PI).toFixed(1)}°    γ = ${(gamma*180/Math.PI).toFixed(1)}°    ξ + γ = 180°`;
+
+        outputs.z.value=z.toFixed(2);outputs.zs.value=zs.toFixed(2);outputs.b.value=`${bDeg.toFixed(0)}°`;outputs.R.value=R.toFixed(2);outputs.theta.value=`${thetaDeg.toFixed(0)}°`;
+      }
+      Object.values(controls).forEach(e=>e.addEventListener('input',update));update();
+    })();
+  </script>
+</div>

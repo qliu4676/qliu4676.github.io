@@ -16,7 +16,8 @@
 		<script defer src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 		<script defer src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
 		<style>
-			#main.dgl-main { max-width: none; padding: 3em 3.5em; text-align: left; }
+			body { background: #fff; }
+			#main.dgl-main { margin: 0 auto; max-width: 88em; padding: 3em 3.5em; text-align: left; width: 100%; }
 			.dgl-intro { max-width: 58em; }
 			.dgl-intro p { color: #697b82; font-size: 1.05em; }
 			.geometry-shell { width: 100%; margin: 2em 0 3em; }
@@ -37,13 +38,6 @@
 		</style>
 	</head>
 	<body>
-		<header id="header">
-			<div class="inner">
-				<a href="./index.html" class="image icon"><img src="images/icon2.png" alt="Qing Liu" /></a>
-				<h1><strong>Qing Liu (刘 青)</strong><br />Astronomy &amp; Astrophysics<br />Leiden Observatory</h1>
-			</div>
-		</header>
-
 		<div id="main" class="dgl-main">
 			<section>
 				<header class="major dgl-intro">
@@ -83,8 +77,25 @@
 				try {
 					const response = await fetch('./docs/dgl-scattering-geometry.md');
 					if (!response.ok) throw new Error('Could not load the derivation.');
-					target.innerHTML = marked.parse(await response.text());
-					if (window.MathJax?.typesetPromise) await MathJax.typesetPromise([target]);
+					const math = [];
+					let source = await response.text();
+					source = source.replace(/\\\[[\s\S]*?\\\]/g, tex => {
+						const index = math.push(tex) - 1;
+						return `<div data-math-token="${index}"></div>`;
+					});
+					source = source.replace(/\\\([\s\S]*?\\\)/g, tex => {
+						const index = math.push(tex) - 1;
+						return `<span data-math-token="${index}"></span>`;
+					});
+					target.innerHTML = marked.parse(source);
+					target.querySelectorAll('[data-math-token]').forEach(node => {
+						node.replaceWith(document.createTextNode(math[Number(node.dataset.mathToken)]));
+					});
+					if (!window.MathJax?.typesetPromise) throw new Error('MathJax did not load.');
+					await MathJax.typesetPromise([target]);
+					const equationCount = target.querySelectorAll('mjx-container').length;
+					if (equationCount < 10) throw new Error('Equation rendering was incomplete.');
+					target.dataset.mathRendered = 'true';
 				} catch (_) {
 					target.innerHTML = '<p>The derivation is available as a <a href="./docs/dgl-scattering-geometry.md">Markdown document</a>.</p>';
 				}

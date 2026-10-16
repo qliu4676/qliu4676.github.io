@@ -20,6 +20,7 @@
 	const elements = {
 		map: document.getElementById("map"),
 		splitter: document.getElementById("splitter"),
+		splitterHandle: document.getElementById("splitterHandle"),
 		splitterRotate: document.getElementById("splitterRotate"),
 		status: document.getElementById("status"),
 		mapDragonflyG: document.getElementById("mapDragonflyG"),
@@ -193,6 +194,10 @@
 		horizontal ? "Horizontal comparison splitter" : "Vertical comparison splitter"
 	);
 		setSplit(state.split);
+	}
+
+	function toggleSplitOrientation() {
+		setSplitOrientation(state.splitOrientation === "vertical" ? "horizontal" : "vertical");
 	}
 
 	function setZoom(nextZoom, anchor) {
@@ -501,12 +506,25 @@
 		});
 
 		let splitting = false;
+		elements.splitterHandle.addEventListener("pointerdown", (event) => {
+			event.stopPropagation();
+	});
+		elements.splitterHandle.addEventListener("click", (event) => {
+			event.stopPropagation();
+			toggleSplitOrientation();
+	});
+		elements.splitterHandle.addEventListener("keydown", (event) => {
+			if (event.key === "Enter" || event.key === " ") {
+				event.preventDefault();
+				toggleSplitOrientation();
+			}
+		});
 		elements.splitterRotate.addEventListener("pointerdown", (event) => {
 			event.stopPropagation();
 	});
 		elements.splitterRotate.addEventListener("click", (event) => {
 		event.stopPropagation();
-		setSplitOrientation(state.splitOrientation === "vertical" ? "horizontal" : "vertical");
+		toggleSplitOrientation();
 	});
 		elements.splitter.addEventListener("pointerdown", (event) => {
 		if (event.target.closest("#splitterRotate")) {

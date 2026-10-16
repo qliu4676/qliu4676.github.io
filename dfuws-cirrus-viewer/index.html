@@ -5,7 +5,7 @@
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 		<link rel="icon" href="../images/thumbs/gal_icon2.png" />
-		<link rel="stylesheet" href="viewer.css" />
+		<link rel="stylesheet" href="viewer.css?v=splitter-rotation-2" />
 	</head>
 	<body>
 		<main class="viewer-shell">
@@ -20,7 +20,7 @@
 			<section class="viewer-stage" aria-label="Interactive dust map comparison">
 				<div id="map" class="map"></div>
 				<div id="splitter" class="splitter" role="separator" aria-label="Comparison splitter" aria-orientation="vertical" tabindex="0">
-					<span></span>
+					<span id="splitterHandle" role="button" tabindex="0" aria-label="Rotate comparison splitter" title="Rotate comparison splitter"></span>
 					<button id="splitterRotate" class="splitter-rotate" type="button" aria-label="Rotate comparison splitter" title="Rotate comparison splitter">↻</button>
 				</div>
 				<div class="map-label left-label">
@@ -82,6 +82,6 @@
 		</main>
 
 		<script src="../assets/dfuws_dust_viewer/metadata.js"></script>
-		<script src="viewer.js"></script>
+		<script src="viewer.js?v=splitter-rotation-2"></script>
 	</body>
 </html>

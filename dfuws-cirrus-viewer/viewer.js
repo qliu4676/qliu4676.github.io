@@ -6,7 +6,7 @@
 		metadata: null,
 		dragonflyLayer: "dragonfly_g",
 		planckLayer: "planck",
-		colormap: "inferno",
+		colormap: "afmhot",
 		split: 0.5,
 		zoom: 1,
 		initialViewWidthDeg: 5,

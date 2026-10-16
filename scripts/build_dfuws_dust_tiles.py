@@ -87,7 +87,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--dragonfly-preview-max-side",
         type=int,
-        default=3200,
+        default=6400,
         help="Maximum Dragonfly g/r preview side length in pixels. Use 0 to keep full resolution.",
     )
     parser.add_argument(
@@ -104,7 +104,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--planck-ebv-range", type=float, nargs=2, metavar=("VMIN", "VMAX"))
     parser.add_argument("--planck-temperature-range", type=float, nargs=2, metavar=("VMIN", "VMAX"))
     parser.add_argument("--planck-tau353-range", type=float, nargs=2, metavar=("VMIN", "VMAX"))
-    parser.add_argument("--colormap", default="inferno", help="Default Matplotlib colormap for generated map images.")
+    parser.add_argument("--colormap", default="afmhot", help="Default Matplotlib colormap for generated map images.")
     parser.add_argument(
         "--colormaps",
         nargs="+",
@@ -281,7 +281,7 @@ def normalize_rgba(
     data: np.ndarray,
     cuts: dict[str, float | int],
     origin: str = "lower",
-    colormap: str = "inferno",
+    colormap: str = "afmhot",
 ) -> Image.Image:
     if origin == "lower":
         data = np.flipud(data)

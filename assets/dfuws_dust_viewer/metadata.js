@@ -1,6 +1,6 @@
 window.DFUWS_METADATA = {
   "schema_version": 1,
-  "created_utc": "2026-07-31T12:52:01.120448+00:00",
+  "created_utc": "2026-10-16T03:53:42.428099+00:00",
   "preview_only": false,
   "image": {
     "width": 8640,
@@ -44,7 +44,7 @@ window.DFUWS_METADATA = {
     "format": "webp",
     "webp_quality": 92,
     "preview_max_side": 1600,
-    "colormap": "inferno",
+    "colormap": "afmhot",
     "colormaps": [
       "viridis",
       "inferno",
@@ -78,7 +78,7 @@ window.DFUWS_METADATA = {
         "afmhot": "preview_dragonfly_g_afmhot.webp",
         "gray": "preview_dragonfly_g_gray.webp"
       },
-      "preview_max_side": 3200,
+      "preview_max_side": 6400,
       "tile_count": 409
     },
     "dragonfly_r": {
@@ -98,7 +98,7 @@ window.DFUWS_METADATA = {
         "afmhot": "preview_dragonfly_r_afmhot.webp",
         "gray": "preview_dragonfly_r_gray.webp"
       },
-      "preview_max_side": 3200,
+      "preview_max_side": 6400,
       "tile_count": 409
     },
     "planck": {

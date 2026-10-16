@@ -7,6 +7,7 @@
 		dragonflyLayer: "dragonfly_g",
 		planckLayer: "planck",
 		colormap: "afmhot",
+		splitOrientation: "vertical",
 		split: 0.5,
 		zoom: 1,
 		initialViewWidthDeg: 5,
@@ -19,6 +20,7 @@
 	const elements = {
 		map: document.getElementById("map"),
 		splitter: document.getElementById("splitter"),
+		splitterRotate: document.getElementById("splitterRotate"),
 		status: document.getElementById("status"),
 		mapDragonflyG: document.getElementById("mapDragonflyG"),
 		mapDragonflyR: document.getElementById("mapDragonflyR"),
@@ -151,18 +153,46 @@
 		const inverse = `${(1 - state.split) * 100}%`;
 		const leftPane = elements.map.querySelector(".preview-left");
 		const rightPane = elements.map.querySelector(".preview-right");
-		if (leftPane) {
-			leftPane.style.clipPath = `inset(0 ${inverse} 0 0)`;
+		if (state.splitOrientation === "horizontal") {
+			if (leftPane) {
+				leftPane.style.clipPath = `inset(0 0 ${inverse} 0)`;
+			}
+			if (rightPane) {
+				rightPane.style.clipPath = `inset(${percent} 0 0 0)`;
+			}
+			elements.splitter.style.top = percent;
+			elements.splitter.style.left = "";
+		} else {
+			if (leftPane) {
+				leftPane.style.clipPath = `inset(0 ${inverse} 0 0)`;
+			}
+			if (rightPane) {
+				rightPane.style.clipPath = `inset(0 0 0 ${percent})`;
+			}
+			elements.splitter.style.left = percent;
+			elements.splitter.style.top = "";
 		}
-		if (rightPane) {
-			rightPane.style.clipPath = `inset(0 0 0 ${percent})`;
-		}
-		elements.splitter.style.left = percent;
 	}
 
 	function pointerToSplit(event) {
 		const rect = elements.map.getBoundingClientRect();
+		if (state.splitOrientation === "horizontal") {
+			return (event.clientY - rect.top) / rect.height;
+		}
 		return (event.clientX - rect.left) / rect.width;
+	}
+
+	function setSplitOrientation(orientation) {
+		state.splitOrientation = orientation === "horizontal" ? "horizontal" : "vertical";
+		const horizontal = state.splitOrientation === "horizontal";
+		elements.splitter.classList.toggle("is-horizontal", horizontal);
+		elements.map.closest(".viewer-stage").classList.toggle("is-horizontal", horizontal);
+		elements.splitter.setAttribute("aria-orientation", state.splitOrientation);
+		elements.splitter.setAttribute(
+		"aria-label",
+		horizontal ? "Horizontal comparison splitter" : "Vertical comparison splitter"
+	);
+		setSplit(state.split);
 	}
 
 	function setZoom(nextZoom, anchor) {
@@ -471,7 +501,17 @@
 		});
 
 		let splitting = false;
+		elements.splitterRotate.addEventListener("pointerdown", (event) => {
+			event.stopPropagation();
+	});
+		elements.splitterRotate.addEventListener("click", (event) => {
+		event.stopPropagation();
+		setSplitOrientation(state.splitOrientation === "vertical" ? "horizontal" : "vertical");
+	});
 		elements.splitter.addEventListener("pointerdown", (event) => {
+		if (event.target.closest("#splitterRotate")) {
+			return;
+		}
 			splitting = true;
 			elements.splitter.setPointerCapture(event.pointerId);
 			setSplit(pointerToSplit(event));
@@ -487,11 +527,13 @@
 			});
 		});
 		elements.splitter.addEventListener("keydown", (event) => {
-			if (event.key === "ArrowLeft") {
+			const negativeKey = state.splitOrientation === "horizontal" ? "ArrowUp" : "ArrowLeft";
+			const positiveKey = state.splitOrientation === "horizontal" ? "ArrowDown" : "ArrowRight";
+			if (event.key === negativeKey) {
 				event.preventDefault();
 				setSplit(state.split - 0.03);
 			}
-			if (event.key === "ArrowRight") {
+			if (event.key === positiveKey) {
 				event.preventDefault();
 				setSplit(state.split + 0.03);
 			}

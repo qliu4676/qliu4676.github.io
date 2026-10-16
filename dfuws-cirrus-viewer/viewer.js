@@ -506,13 +506,49 @@
 		});
 
 		let splitting = false;
+		let handleGesture = null;
 		elements.splitterHandle.addEventListener("pointerdown", (event) => {
+			event.preventDefault();
 			event.stopPropagation();
-	});
-		elements.splitterHandle.addEventListener("click", (event) => {
-			event.stopPropagation();
-			toggleSplitOrientation();
-	});
+			handleGesture = {
+				pointerId: event.pointerId,
+				startX: event.clientX,
+				startY: event.clientY,
+				moved: false,
+			};
+			elements.splitterHandle.setPointerCapture(event.pointerId);
+		});
+		elements.splitterHandle.addEventListener("pointermove", (event) => {
+			if (!handleGesture || handleGesture.pointerId !== event.pointerId) {
+				return;
+			}
+			const distance = Math.hypot(
+				event.clientX - handleGesture.startX,
+				event.clientY - handleGesture.startY
+			);
+			if (!handleGesture.moved && distance >= 4) {
+				handleGesture.moved = true;
+			}
+			if (handleGesture.moved) {
+				setSplit(pointerToSplit(event));
+			}
+		});
+		elements.splitterHandle.addEventListener("pointerup", (event) => {
+			if (!handleGesture || handleGesture.pointerId !== event.pointerId) {
+				return;
+			}
+			const shouldRotate = !handleGesture.moved;
+			handleGesture = null;
+			if (elements.splitterHandle.hasPointerCapture(event.pointerId)) {
+				elements.splitterHandle.releasePointerCapture(event.pointerId);
+			}
+			if (shouldRotate) {
+				toggleSplitOrientation();
+			}
+		});
+		elements.splitterHandle.addEventListener("pointercancel", () => {
+			handleGesture = null;
+		});
 		elements.splitterHandle.addEventListener("keydown", (event) => {
 			if (event.key === "Enter" || event.key === " ") {
 				event.preventDefault();
@@ -527,7 +563,7 @@
 		toggleSplitOrientation();
 	});
 		elements.splitter.addEventListener("pointerdown", (event) => {
-		if (event.target.closest("#splitterRotate")) {
+		if (event.target.closest("#splitterRotate, #splitterHandle")) {
 			return;
 		}
 			splitting = true;
